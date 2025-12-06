@@ -19,14 +19,14 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str
     
     # CORS
-    CORS_ORIGINS_STR: str = '["http://localhost:5173"]'
+    CORS_ORIGINS_STR: str = '["https://catat-chi.vercel.app", "http://localhost:5173"]'
     
     @property
     def CORS_ORIGINS(self) -> List[str]:
         try:
             return json.loads(self.CORS_ORIGINS_STR)
         except:
-            return ["http://localhost:5173"]
+            return ["https://catat-chi.vercel.app", "http://localhost:5173"]
     
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 10
