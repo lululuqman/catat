@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+groq
+anthropic
+python-dotenv
+supabase
+reportlab
+pypdf
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic
+pydantic-settings
