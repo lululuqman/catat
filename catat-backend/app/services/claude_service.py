@@ -4,6 +4,7 @@ from app.models.letter import StructuredData, Language, LetterType
 from fastapi import HTTPException
 import logging
 import json
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,7 @@ Generate the complete formatted letter now."""
             )
             
             letter = message.content[0].text
+            letter = self._normalize_layout(letter)
             logger.info(f"✅ Letter generated: {len(letter)} characters")
             return letter
             
@@ -115,5 +117,62 @@ Generate the complete formatted letter now."""
     
     def _format_key_points(self, points: list) -> str:
         return "\n".join(f"- {point}" for point in points)
+
+    def _normalize_layout(self, html: str) -> str:
+        """
+        Ensure layout order: sender -> <hr> -> recipient -> date -> rest.
+        Right-align date paragraph if missing alignment class.
+        """
+        try:
+            # Extract paragraph blocks
+            blocks = re.findall(r"<p[^>]*>.*?</p>", html, flags=re.IGNORECASE | re.DOTALL)
+            if not blocks:
+                return html
+
+            def is_date(block: str) -> bool:
+                date_re = re.compile(r"\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)", re.IGNORECASE)
+                return "[date]" in block.lower() or bool(date_re.search(block))
+
+            def is_salutation(block: str) -> bool:
+                return re.search(r"dear\s|tuan/p uan|sir/madam", block, re.IGNORECASE) is not None
+
+            def is_subject(block: str) -> bool:
+                return re.search(r"<strong>\s*(re:|rujukan:|subject:|perkara:)", block, re.IGNORECASE) is not None
+
+            sender_idx = 0
+            date_idx = next((i for i, b in enumerate(blocks) if is_date(b)), -1)
+            recipient_idx = next(
+                (
+                    i
+                    for i, b in enumerate(blocks[1:], start=1)
+                    if i != date_idx and not is_salutation(b) and not is_subject(b)
+                ),
+                -1,
+            )
+
+            # Move date after recipient if it appears before
+            if date_idx != -1 and recipient_idx != -1 and date_idx < recipient_idx:
+                date_block = blocks.pop(date_idx)
+                insert_at = recipient_idx  # after recipient once pop shifts left
+                blocks.insert(insert_at + 1, date_block)
+
+            # Inject <hr> after sender if missing
+            if "<hr" not in html.lower():
+                blocks.insert(sender_idx + 1, "<hr>")
+
+            # Ensure date paragraph is right-aligned
+            for i, b in enumerate(blocks):
+                if is_date(b):
+                    if 'class="' not in b:
+                        b = b.replace("<p", '<p class="ql-align-right"', 1)
+                    elif "ql-align-right" not in b:
+                        b = b.replace('class="', 'class="ql-align-right ', 1)
+                    blocks[i] = b
+                    break
+
+            return "\n\n".join(blocks)
+        except Exception as exc:
+            logger.warning(f"Layout normalization skipped: {exc}")
+            return html
 
 claude_service = ClaudeService()
