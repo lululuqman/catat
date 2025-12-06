@@ -46,14 +46,22 @@ export const formatEnglishLetter = (content, metadata = {}, structuredData = {})
   // Horizontal separator
   letter += '<hr>\n\n'
 
-  // Recipient info - each line in separate <p> tag
+  // Recipient name (first, on top)
   if (recipient.name) letter += `<p>${recipient.name}</p>\n\n`
+  
+  // Recipient title (if exists)
   if (recipient.title) letter += `<p>${recipient.title}</p>\n\n`
+  
+  // Recipient organization (if exists)
   if (recipient.organization) letter += `<p>${recipient.organization}</p>\n\n`
-  if (recipient.address) letter += `<p>${recipient.address}</p>\n\n`
+  
+  // Recipient address with date on same line (using a container with flexbox-like spacing)
+  if (recipient.address) {
+    letter += `<p>${recipient.address}</p>\n\n`
+  }
 
-  // Date in separate <p> tag
-  letter += `<p>${date}</p>\n\n`
+  // Date on separate line, right-aligned
+  letter += `<p style="text-align: right;">${date}</p>\n\n`
 
   // Salutation
   letter += '<p>Dear Sir/Madam,</p>\n\n'
@@ -98,14 +106,22 @@ export const formatMalayLetter = (content, metadata = {}, structuredData = {}) =
   // Horizontal separator
   letter += '<hr>\n\n'
 
-  // Recipient info - each line in separate <p> tag
+  // Recipient name (first, on top)
   if (recipient.name) letter += `<p>${recipient.name}</p>\n\n`
+  
+  // Recipient title (if exists)
   if (recipient.title) letter += `<p>${recipient.title}</p>\n\n`
+  
+  // Recipient organization (if exists)
   if (recipient.organization) letter += `<p>${recipient.organization}</p>\n\n`
-  if (recipient.address) letter += `<p>${recipient.address}</p>\n\n`
+  
+  // Recipient address with date on same line
+  if (recipient.address) {
+    letter += `<p>${recipient.address}</p>\n\n`
+  }
 
-  // Date in separate <p> tag
-  letter += `<p>${date}</p>\n\n`
+  // Date on separate line, right-aligned
+  letter += `<p style="text-align: right;">${date}</p>\n\n`
 
   // Salutation
   letter += '<p>Tuan/Puan,</p>\n\n'
@@ -199,4 +215,3 @@ export const getLanguageDisplay = (language) => {
   }
   return languages[language] || 'English'
 }
-
