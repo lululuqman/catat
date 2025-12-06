@@ -396,24 +396,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ---
 
-## 👥 Team
-
-- **[Your Name]** - Full Stack Developer - [@your-github](https://github.com/your-username)
-- **[Team Member 2]** - [Role]
-- **[Team Member 3]** - [Role]
-
----
-
-## 📧 Contact
-
-**Project Link**: [https://github.com/your-username/catat](https://github.com/your-username/catat)
-
-**Live Demo**: [https://catat.vercel.app](https://catat.vercel.app)
-
-**Report Issues**: [GitHub Issues](https://github.com/your-username/catat/issues)
-
----
-
 <div align="center">
 
 **Made with ❤️ for Malaysians, by Malaysians**
@@ -424,14 +406,3 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 </div>
 ```
-
-4. **Commit message:**
-```
-docs: Add comprehensive README with project overview
-
-- Add project description and problem statement
-- Document dual-AI architecture (Groq + Claude)
-- Include installation and usage instructions
-- Add tech stack and features documentation
-- Include deployment guides
-- Add roadmap and contributing guidelines
