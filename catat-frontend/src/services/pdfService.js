@@ -33,6 +33,74 @@ class PDFService {
     const body = htmlDoc.body
 
     /**
+     * Normalize common official-letter structure without changing content
+     * - Inserts a separator line after sender block
+     * - Right-aligns detected dates
+     * - Underlines detected subject/title lines
+     */
+    const enhanceLetterStructure = (bodyEl) => {
+      if (!bodyEl) return
+
+      const paragraphs = Array.from(bodyEl.querySelectorAll('p')).filter(
+        p => p.textContent && p.textContent.trim()
+      )
+      if (!paragraphs.length) return
+
+      const normalizeText = (text) => (text || '').replace(/\s+/g, ' ').trim()
+      const dateRegex = /\b\d{1,2}\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\.?\s+\d{2,4}\b/i
+
+      const addAlignmentIfMissing = (el, align = 'right') => {
+        const hasAlignStyle = (el.getAttribute('style') || '').includes('text-align')
+        const hasAlignClass = Array.from(el.classList || []).some(c => c.includes('align'))
+        if (hasAlignStyle || hasAlignClass) return
+
+        const existingStyle = el.getAttribute('style') || ''
+        const needsSemicolon = existingStyle.trim() && !existingStyle.trim().endsWith(';')
+        const separator = needsSemicolon ? '; ' : ''
+        el.setAttribute('style', `${existingStyle}${separator}text-align: ${align};`)
+        el.classList.add(`ql-align-${align}`)
+      }
+
+      // 1) Right-align date if detected and not already aligned
+      paragraphs.forEach(p => {
+        const text = normalizeText(p.textContent)
+        if (dateRegex.test(text)) {
+          addAlignmentIfMissing(p, 'right')
+        }
+      })
+
+      // 2) Underline subject/title if detected (Re:, Subject:, Rujukan:, Perkara:)
+      const subjectIdx = paragraphs.findIndex(p => /^((re|rujukan|subject|perkara)\s*:)/i.test(normalizeText(p.textContent)))
+      if (subjectIdx >= 0) {
+        const subjectPara = paragraphs[subjectIdx]
+        if (!subjectPara.querySelector('u')) {
+          const underlineWrapper = htmlDoc.createElement('u')
+          while (subjectPara.firstChild) {
+            underlineWrapper.appendChild(subjectPara.firstChild)
+          }
+          subjectPara.appendChild(underlineWrapper)
+        }
+      }
+
+      // 3) Insert a separator line after sender block (before recipient/date/salutation) if none exists
+      if (!bodyEl.querySelector('hr')) {
+        const recipientIdx = paragraphs.findIndex(p => /^(to|kepada|the\s)/i.test(normalizeText(p.textContent)))
+        const salutationIdx = paragraphs.findIndex(p => /(dear\s|tuan|puan|sir\/madam)/i.test(normalizeText(p.textContent)))
+        const dateIdx = paragraphs.findIndex(p => dateRegex.test(normalizeText(p.textContent)))
+
+        const candidates = [recipientIdx, dateIdx, salutationIdx].filter(i => i > 0)
+        if (candidates.length) {
+          const insertBeforeIdx = Math.min(...candidates)
+          const hr = htmlDoc.createElement('hr')
+          const targetPara = paragraphs[insertBeforeIdx]
+          bodyEl.insertBefore(hr, targetPara)
+        }
+      }
+    }
+
+    enhanceLetterStructure(body)
+
+    /**
      * Process a single element and return new Y position
      */
     const processElement = (element, currentY) => {
@@ -114,6 +182,14 @@ class PDFService {
       // LINE BREAK <br>
       if (tagName === 'br') {
         return yPos + lineHeight
+      }
+
+      // HORIZONTAL LINE <hr>
+      if (tagName === 'hr') {
+        yPos = checkPageBreak(10)
+        doc.setLineWidth(0.4)
+        doc.line(margin, yPos, pageWidth - margin, yPos)
+        return yPos + (paragraphSpacing / 2)
       }
 
       // LISTS <ul>, <ol>
