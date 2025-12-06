@@ -2,9 +2,10 @@ from fastapi import APIRouter, UploadFile, Form, File, HTTPException
 from app.services.whisper_service import whisper_service
 from app.services.groq_service import groq_service
 from app.services.claude_service import claude_service
-from app.models.letter import GenerateLetterResponse, Language, LetterType, LetterMetadata
+from app.models.letter import GenerateLetterResponse, Language, LetterType, LetterMetadata, ContactInfo
 from app.config import settings
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["generate"])
@@ -13,10 +14,19 @@ router = APIRouter(prefix="/api", tags=["generate"])
 async def generate_letter(
     audio: UploadFile = File(...),
     language: Language = Form(...),
-    letter_type: LetterType = Form(...)
+    letter_type: LetterType = Form(...),
+    # User-provided contact information (optional)
+    sender_name: Optional[str] = Form(None),
+    sender_address: Optional[str] = Form(None),
+    sender_contact: Optional[str] = Form(None),
+    recipient_name: Optional[str] = Form(None),
+    recipient_title: Optional[str] = Form(None),
+    recipient_organization: Optional[str] = Form(None),
+    recipient_address: Optional[str] = Form(None)
 ):
     """
-    Complete pipeline: Audio → Groq Whisper → Groq Mixtral → Claude → Letter
+    Complete pipeline: Audio → Groq Whisper → Groq LLM → Claude → Letter
+    User-provided contact info will override/supplement AI-extracted data
     """
     
     audio_bytes = await audio.read()
@@ -40,11 +50,33 @@ async def generate_letter(
         )
         
         # Step 2: Structure
-        logger.info("Step 2: Groq Mixtral structuring...")
+        logger.info("Step 2: Groq LLM structuring...")
         structured_data = await groq_service.structure_letter(transcript, letter_type.value)
         
-        # Step 3: Generate
-        logger.info("Step 3: Claude generation...")
+        # Step 3: Merge user-provided contact info with AI-extracted data
+        logger.info("Step 3: Merging user-provided contact info...")
+        
+        # User-provided info takes priority (overrides AI extraction)
+        if sender_name or sender_address or sender_contact:
+            structured_data.sender = ContactInfo(
+                name=sender_name or structured_data.sender.name,
+                address=sender_address or structured_data.sender.address,
+                contact=sender_contact or structured_data.sender.contact
+            )
+        
+        if recipient_name or recipient_title or recipient_organization or recipient_address:
+            structured_data.recipient = ContactInfo(
+                name=recipient_name or structured_data.recipient.name,
+                title=recipient_title or structured_data.recipient.title,
+                organization=recipient_organization or structured_data.recipient.organization,
+                address=recipient_address or structured_data.recipient.address
+            )
+        
+        logger.info(f"✅ Final sender: {structured_data.sender.name or '[Not provided]'}")
+        logger.info(f"✅ Final recipient: {structured_data.recipient.name or '[Not provided]'}")
+        
+        # Step 4: Generate letter with merged data
+        logger.info("Step 4: Claude generation...")
         final_letter = await claude_service.generate_letter(structured_data, language, letter_type)
         
         metadata = LetterMetadata(
