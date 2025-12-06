@@ -39,6 +39,7 @@
   border: none !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 16px !important;
+  line-height: 1.6 !important;
 }
 
 .ql-editor {
@@ -48,4 +49,26 @@
 
 .ql-editor:focus {
   outline: none !important;
+}
+
+/* Letter paragraph spacing - makes it look like official letter */
+.ql-editor p {
+  margin-bottom: 1em !important;
+  line-height: 1.6 !important;
+}
+
+.ql-editor p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Ensure proper spacing for subject line */
+.ql-editor strong {
+  font-weight: 600 !important;
+}
+
+/* Spacing for signature section */
+.ql-editor br + br {
+  display: block !important;
+  content: "" !important;
+  margin-top: 0.5em !important;
 }

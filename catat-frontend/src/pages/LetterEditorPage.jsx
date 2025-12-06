@@ -6,6 +6,7 @@ import 'react-quill/dist/quill.snow.css'
 import { pdfService } from '../services/pdfService'
 import { supabaseService } from '../services/supabaseService'
 import { formatMalaysianLetter } from '../templates/letterTemplates'
+import { formatLetterToHTML, htmlToPlainText } from '../utils/letterFormatter'
 
 function LetterEditorPage() {
   const navigate = useNavigate()
@@ -26,12 +27,28 @@ function LetterEditorPage() {
         const { letter, metadata: meta, structuredData: structured, transcript: trans } = location.state
         
         if (letter) {
-          setContent(letter)
+          // Convert plain text to HTML if needed
+          const formattedLetter = formatLetterToHTML(letter)
+          setContent(formattedLetter)
         }
         
         if (meta) {
           setMetadata(meta)
-          setTitle(`${meta.letter_type} Letter - ${new Date().toLocaleDateString()}`)
+          
+          // Set title based on subject from structured data, or use a default
+          if (structured?.subject) {
+            setTitle(structured.subject)
+          } else {
+            // Fallback to type-based title
+            const typeNames = {
+              complaint: 'Complaint Letter',
+              proposal: 'Proposal Letter',
+              mc: 'MC Letter',
+              general: 'General Letter',
+              official: 'Official Letter'
+            }
+            setTitle(typeNames[meta.letter_type] || 'Letter')
+          }
         }
         
         if (structured) {
@@ -47,6 +64,7 @@ function LetterEditorPage() {
           if (supabaseService.isConfigured()) {
             const letterData = await supabaseService.getLetter(id)
             setTitle(letterData.title || '')
+            // Preserve HTML content as-is (don't convert)
             setContent(letterData.content || '')
             setMetadata(letterData.metadata)
             setStructuredData(letterData.structured_data)
@@ -133,15 +151,13 @@ function LetterEditorPage() {
 
   const handleExportPDF = () => {
     try {
-      // Strip HTML tags from Quill content for PDF
-      const plainText = content.replace(/<[^>]*>/g, '')
-      
+      // Pass HTML content directly to PDF service (it will parse and preserve formatting)
       const pdfMetadata = {
         letter_type: metadata?.letter_type || 'letter',
         language: metadata?.language || 'en'
       }
       
-      const doc = pdfService.generateLetterPDF(plainText, pdfMetadata)
+      const doc = pdfService.generateLetterPDF(content, pdfMetadata)
       
       const filename = `${metadata?.letter_type || 'letter'}_${new Date().getTime()}.pdf`
       pdfService.downloadPDF(doc, filename)
@@ -260,9 +276,12 @@ function LetterEditorPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Letter Title..."
+              placeholder="Enter a descriptive title for your letter..."
               className="w-full text-2xl font-bold text-gray-900 placeholder-gray-400 focus:outline-none"
             />
+            <p className="mt-2 text-sm text-gray-500">
+              💡 Tip: Use a clear title like "Complaint About Road Conditions" or "Proposal for New Project"
+            </p>
           </div>
 
           {/* Rich Text Editor */}
