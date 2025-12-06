@@ -1,36 +1,41 @@
-# ✅ Official Letter Formatting Implemented!
+# ✅ Malaysian Formal Letter Formatting with Markdown Style
 
-## What Was Fixed
+## What Was Implemented
 
-The letter editor now displays letters with proper paragraph formatting like a real official letter, with clear spacing between sections (sender info, separator line, recipient info, date, salutation, subject, body, closing).
+The letter editor now generates letters using **markdown-style formatting** following the **Malaysian formal letter schema**, with proper paragraph formatting and professional layout.
 
 ## 🎨 Changes Made
 
 ### 1. Backend - Claude Service (`catat-backend/app/services/claude_service.py`)
 
-**Updated Claude's system prompt to generate HTML-formatted letters:**
+**Updated Claude's system prompt to generate markdown-style formatted letters:**
 
-```python
-# OLD: Plain text with line breaks
-[Sender Name]
-[Address]
-[Contact]
+```html
+<!-- Malaysian Formal Letter Structure -->
+<p>[Sender Name]<br>[Sender Address]<br>[Sender Contact]</p>
 
-[Date]
-
-# NEW: Proper HTML with paragraph tags
-<p>[Sender Name]<br>[Address]<br>[Contact]</p>
 <hr>
-<p>[Recipient Name]<br>[Title]<br>[Organization]<br>[Address]</p>
-<p class="ql-align-right">[Date: DD Month YYYY]</p>
+
+<p>[Recipient Name]<br>[Recipient Title]<br>[Recipient Organization]<br>[Recipient Address]<span style="float: right;">6 DECEMBER 2025</span></p>
+
+<p>Dear Sir/Madam,</p>
+
+<p>**Subject: [Subject Line]**</p>
+
+<p>[Body paragraphs...]</p>
+
+<p>Yours faithfully,<br>[Sender Name]</p>
 ```
 
-**Key improvements:**
-- Uses `<p>` tags for each major section
-- Uses `<br>` for line breaks within sections (addresses)
-- Uses `<strong>` for subject lines
-- Each body paragraph is in its own `<p>` tag
-- Proper spacing between sections
+**Key features:**
+- **Markdown-style formatting** with minimal HTML tags
+- **Sender info** left-aligned at top
+- **Horizontal line** `<hr>` between sender and recipient
+- **Recipient info** left-aligned with date on same line
+- **Date** right-aligned using `<span style="float: right;">` on recipient's last line
+- **Date in CAPITAL LETTERS** (e.g., "6 DECEMBER 2025")
+- **Subject** uses `**text**` for markdown-style bold
+- Clean, professional appearance
 
 ### 2. Frontend - Letter Formatter Utility (`src/utils/letterFormatter.js`)
 
@@ -51,197 +56,205 @@ The letter editor now displays letters with proper paragraph formatting like a r
    - Validates Malaysian letter structure
    - Checks for subject line and salutation
 
-### 3. Frontend - CSS Styling (`src/index.css`)
+### 3. Frontend - PDF Service (`src/services/pdfService.js`)
 
-**Enhanced Quill editor CSS:**
+**Enhanced PDF rendering to handle new format:**
 
-```css
-/* Proper paragraph spacing */
-.ql-editor p {
-  margin-bottom: 1em !important;
-  line-height: 1.6 !important;
-}
+- Updated date regex to recognize **CAPITAL LETTER months**
+- Added `renderParagraphWithFloat()` method to handle floated spans
+- Properly renders recipient info on left, date on right on same line
+- Supports the Malaysian formal letter schema in PDF export
 
-/* Line height for readability */
-.ql-container {
-  line-height: 1.6 !important;
-}
+**Key improvements:**
+```javascript
+// Detects floated spans (date)
+const floatedSpan = element.querySelector('span[style*="float: right"]')
 
-/* Strong emphasis for subject */
-.ql-editor strong {
-  font-weight: 600 !important;
-}
+// Renders recipient on left, date on right
+renderParagraphWithFloat(doc, element, floatedSpan, ...)
 ```
 
-**Result:** Each paragraph now has proper spacing, making the letter look professional.
+**Result:** PDFs now properly show recipient info on left with date aligned right on the same line.
 
-### 4. Frontend - Letter Editor Page (`src/pages/LetterEditorPage.jsx`)
+### 4. Normalization Function
 
-**Updated to use formatter:**
-- Converts incoming letter to HTML format
-- Uses `htmlToPlainText()` for PDF export
-- Ensures consistent formatting
+**Backend normalization (`_normalize_layout`):**
+- Combines recipient and date into one paragraph
+- Adds date as floated span: `<span style="float: right;">[Date]</span>`
+- Ensures proper structure: sender → `<hr>` → (recipient + date) → body
+
+**Result:** Consistent letter structure across all generated letters
 
 ## 📝 Example Output
 
-### Before (All in one block):
-```
-Ahmad bin Abdullah 123 Jalan Tun Razak 012-345-6789 6 December 2025 DBKL...
-```
-
-### After (Proper paragraphs):
+### Malaysian Formal Letter Format:
 ```
 Ahmad bin Abdullah
-123 Jalan Tun Razak
+123 Jalan Tun Razak, Kuala Lumpur
 012-345-6789
 
-6 December 2025
+_____________________________________________
 
-DBKL
-Kuala Lumpur City Hall
-Jalan Raja Laut
+Datuk Bandar DBKL
+Dewan Bandaraya Kuala Lumpur
+Jalan Raja Laut, 50350 KL                              6 DECEMBER 2025
 
 Dear Sir/Madam,
 
-Re: Complaint Regarding Poor Municipal Services
+**Subject: Complaint Regarding Poor Municipal Services**
 
-I am writing to express my concern...
+I am writing to formally lodge a complaint regarding the deteriorating
+municipal services in our area.
 
-[Next paragraph...]
+Over the past several months, waste collection has been irregular and
+road maintenance has been neglected, causing significant inconvenience
+to residents.
 
-[Next paragraph...]
+I respectfully request your office to conduct an inspection and take
+immediate corrective action to address these issues.
+
+Thank you for your attention to this matter.
 
 Yours faithfully,
 Ahmad bin Abdullah
 ```
 
-## 🎯 Letter Structure
+### Key Visual Features:
+✅ Sender info left-aligned
+✅ Horizontal separator line
+✅ Recipient info left-aligned
+✅ **Date right-aligned on same line as recipient address**
+✅ **Date in CAPITAL LETTERS**
+✅ Clean markdown-style subject line
+✅ Professional paragraph spacing
 
-The formatted letter now has these distinct sections:
+## 🎯 Malaysian Formal Letter Structure
 
-1. **Sender Info** (one paragraph with line breaks)
+The formatted letter follows this structure:
+
+1. **Sender Info** (left-aligned paragraph with `<br>` between lines)
 2. **Separator line** (`<hr>`)
-3. **Recipient Info** (one paragraph with line breaks)
-4. **Date** (one paragraph, right-aligned)
-5. **Salutation** (one paragraph)
-6. **Subject** (one paragraph, bold)
-7. **Body paragraphs** (each in separate paragraph)
-8. **Closing** (one paragraph with line breaks)
+3. **Recipient Info + Date** (ONE paragraph with recipient left-aligned, date right-aligned on same line)
+   - Recipient name, title, organization, address
+   - Date as `<span style="float: right;">DD MONTH YYYY</span>`
+4. **Salutation** (one paragraph: "Dear Sir/Madam," or "Tuan/Puan,")
+5. **Subject** (one paragraph with markdown bold: `**Subject: [Title]**`)
+6. **Body paragraphs** (each in separate `<p>` tag)
+7. **Closing** (one paragraph: "Yours faithfully," with sender name)
 
 ## ✅ Testing Steps
 
-### 1. Restart Backend
+### 1. Deploy Backend to Render
+Since you're using Render for deployment:
+1. Commit changes: `git add .` and `git commit -m "Update letter formatting to Malaysian formal schema"`
+2. Push to your repository: `git push`
+3. Render will automatically redeploy with the new changes
+
+### 2. Test Locally (Optional)
 ```bash
 cd catat-backend
-# Stop server (Ctrl+C)
 uvicorn app.main:app --reload
 ```
 
-### 2. Generate New Letter
-1. Go to http://localhost:5173/generate
-2. Fill in contact info
+### 3. Generate New Letter
+1. Go to your app URL
+2. Fill in sender and recipient contact info
 3. Record voice message
 4. Generate letter
 5. Click "Edit & Save Letter"
 
-### 3. Check Formatting
-✅ Each section should be in its own paragraph
-✅ Proper spacing between sections
-✅ Address lines use line breaks (not separate paragraphs)
-✅ Body text has clear paragraph breaks
-✅ Easy to read and edit
-
-### 4. Test PDF Export
-1. In editor, click "Export PDF"
-2. ✅ PDF should have proper paragraph spacing
-3. ✅ Looks like official letter format
-
-## 🎨 Visual Comparison
-
-### Old Format (Bad):
-```
-[SENDER_NAME] [Address] [Contact] [DATE] [Recipient Name] [Title] 
-[Organization] [Address] Dear Sir/Madam, Re: Complaint Regarding 
-Poor Municipal Services I am writing to formally lodge a complaint 
-regarding an issue that requires your immediate attention...
-```
-❌ Everything runs together
-❌ Hard to read
-❌ Not professional
-
-### New Format (Good):
-```
-Ahmad bin Abdullah
-123 Jalan Tun Razak
-012-345-6789
-
-6 December 2025
-
-DBKL
-City Hall
-Jalan Raja Laut
-
-Dear Sir/Madam,
-
-Re: Complaint Regarding Poor Municipal Services
-
-I am writing to formally lodge a complaint regarding an 
-issue that requires your immediate attention.
-
-[Paragraph break]
-
-Over the past several months, I have observed...
-
-[Paragraph break]
-
-I respectfully request your office to conduct...
-
-Yours faithfully,
-Ahmad bin Abdullah
-```
-✅ Clear sections
-✅ Easy to read
+### 4. Check Formatting
+✅ Sender info left-aligned at top
+✅ Horizontal line after sender
+✅ Recipient info left-aligned
+✅ **Date appears on same line as recipient address, right-aligned**
+✅ **Date in CAPITAL LETTERS** (e.g., "6 DECEMBER 2025")
+✅ Subject line with markdown-style bold
+✅ Body paragraphs properly spaced
 ✅ Professional appearance
-✅ Proper spacing
+
+### 5. Test PDF Export
+1. In editor, click "Export PDF"
+2. ✅ PDF should show recipient on left, date on right
+3. ✅ Date in capital letters
+4. ✅ Malaysian formal letter format maintained
+
+## 🎨 Format Highlights
+
+### Malaysian Formal Letter Schema ✅
+
+```
+[Sender - Left]
+_____________________________________________
+[Recipient - Left]                    [Date - Right, CAPS]
+
+[Salutation]
+[Bold Subject]
+[Body]
+[Closing]
+```
+
+**Key Differences from Previous Format:**
+- ✅ **Date on same line** as recipient address (not separate line)
+- ✅ **Date in CAPITAL LETTERS** (6 DECEMBER 2025)
+- ✅ **Recipient left-aligned** (not right-aligned)
+- ✅ **Markdown-style formatting** (minimal HTML)
+- ✅ **Clean, professional appearance**
+
+### Perfect For:
+- Official complaints to government agencies
+- Formal proposals to organizations
+- Medical leave (MC) letters
+- Business correspondence
+- Any formal Malaysian letters
 
 ## 🔍 How It Works
 
-### Claude Generation:
+### Letter Generation Flow:
 ```
-User records: "I want to complain about potholes..."
+User records: "I want to complain about potholes in my area..."
            ↓
-Claude generates HTML:
-<p>Ahmad bin Abdullah<br>123 Jalan</p>
-<p>6 December 2025</p>
-<p><strong>Re: Complaint About Potholes</strong></p>
-<p>I am writing to complain...</p>
+Backend processes with Claude AI
            ↓
-Frontend receives HTML
+Claude generates Malaysian formal letter with HTML structure:
+<p>[Sender]<br>[Address]</p>
+<hr>
+<p>[Recipient]<br>[Address]<span style="float: right;">6 DECEMBER 2025</span></p>
+<p>Dear Sir/Madam,</p>
+<p>**Subject: Complaint About Road Conditions**</p>
+<p>[Professional body paragraphs...]</p>
            ↓
-Quill editor displays with proper formatting
+Normalization function ensures proper structure
            ↓
-User sees professional letter with paragraphs!
+Frontend (Quill editor) displays formatted letter
+           ↓
+User can edit and save
+           ↓
+PDF export maintains formatting with pdfService.js
+           ↓
+Professional Malaysian formal letter! ✅
 ```
 
-### Fallback (If Plain Text):
-```
-Plain text letter from backend
-           ↓
-formatLetterToHTML() converts:
-- Double newlines → paragraph breaks
-- Single newlines → <br> tags
-           ↓
-Quill displays formatted letter
-```
+### Key Components:
+1. **Claude AI** - Generates professional content with proper formatting
+2. **Normalization** - Ensures consistent structure (recipient + date combined)
+3. **Quill Editor** - Displays and allows editing
+4. **PDF Service** - Exports with proper layout (date floated right)
 
 ## 📚 API Response Example
 
-**New format from backend:**
+**Malaysian formal letter format from backend:**
 ```json
 {
-  "letter": "<p>Ahmad bin Abdullah<br>123 Jalan Tun Razak</p><p>6 December 2025</p><p>DBKL<br>City Hall</p><p>Dear Sir/Madam,</p><p><strong>Re: Complaint</strong></p><p>First paragraph...</p><p>Second paragraph...</p>"
+  "letter": "<p>Ahmad bin Abdullah<br>123 Jalan Tun Razak<br>012-345-6789</p>\n\n<hr>\n\n<p>Datuk Bandar DBKL<br>Dewan Bandaraya Kuala Lumpur<br>Jalan Raja Laut, 50350 KL<span style=\"float: right;\">6 DECEMBER 2025</span></p>\n\n<p>Dear Sir/Madam,</p>\n\n<p>**Subject: Complaint Regarding Road Conditions**</p>\n\n<p>I am writing to formally lodge a complaint...</p>\n\n<p>Second paragraph...</p>\n\n<p>Yours faithfully,<br>Ahmad bin Abdullah</p>"
 }
 ```
+
+**Key points:**
+- Date in CAPITAL LETTERS
+- Date as floated span on same line as recipient address
+- Markdown-style bold for subject (`**text**`)
+- Clean paragraph structure
 
 ## 🐛 Troubleshooting
 
@@ -293,9 +306,22 @@ Want even better formatting? You can:
 
 ---
 
-**Your letters now look professional and official!** 🎉
+## 🎉 Summary
 
-The formatting matches Malaysian standard letter formats with proper spacing and clear section breaks. Users can easily read and edit their letters in the Quill editor.
+**Your letters now follow proper Malaysian formal letter schema!**
 
-**Test it now and see the difference!** 🚀
+✅ **Markdown-style formatting** - Clean, minimal HTML
+✅ **Recipient left, date right** - Professional layout
+✅ **Date in CAPITAL LETTERS** - Formal appearance (6 DECEMBER 2025)
+✅ **Proper structure** - Follows Malaysian letter standards
+✅ **PDF export works** - Maintains formatting in exported PDFs
+✅ **Easy to edit** - Quill editor with full formatting support
+
+**Ready to deploy?**
+1. Commit your changes
+2. Push to your repository
+3. Render will auto-deploy
+4. Test with a new letter generation
+
+**Your voice-to-formal-letter app is now production-ready!** 🚀
 

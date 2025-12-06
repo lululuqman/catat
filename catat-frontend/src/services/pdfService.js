@@ -48,7 +48,7 @@ class PDFService {
       if (!paragraphs.length) return
 
       const normalizeText = (text) => (text || '').replace(/\s+/g, ' ').trim()
-      const dateRegex = /\b\d{1,2}\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\.?\s+\d{2,4}\b/i
+      const dateRegex = /\b\d{1,2}\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|Dis(?:ember)?|DISEMBER|Januari|JANUARI|Mac|MAC|Mei|MEI|Julai|JULAI|Ogos|OGOS|Oktober|OKTOBER)\.?\s+\d{2,4}\b/i
 
       const addAlignmentIfMissing = (el, align = 'right') => {
         const hasAlignStyle = (el.getAttribute('style') || '').includes('text-align')
@@ -151,6 +151,16 @@ class PDFService {
       if (tagName === 'p') {
         yPos = checkPageBreak()
 
+        // Check if paragraph contains floated span (e.g., date on right)
+        const floatedSpan = element.querySelector('span[style*="float: right"]')
+
+        if (floatedSpan) {
+          // Handle paragraph with floated content (recipient + date format)
+          yPos = this.renderParagraphWithFloat(doc, element, floatedSpan, yPos, margin, maxWidth, pageWidth, lineHeight)
+          yPos += paragraphSpacing
+          return yPos
+        }
+
         // Get all text content from paragraph (including formatted text)
         let paragraphText = ''
         let hasContent = false
@@ -175,9 +185,9 @@ class PDFService {
           // Check for alignment
           const style = element.getAttribute('style') || ''
           const classList = Array.from(element.classList || [])
-          
+
           let align = 'left'
-          if (style.includes('text-align: right') || style.includes('text-align:right') || 
+          if (style.includes('text-align: right') || style.includes('text-align:right') ||
               classList.some(c => c.includes('right'))) {
             align = 'right'
           } else if (style.includes('text-align: center') || style.includes('text-align:center') ||
@@ -187,7 +197,7 @@ class PDFService {
 
           // Process text with formatting
           yPos = this.renderFormattedParagraph(doc, element, yPos, margin, maxWidth, pageWidth, lineHeight, align)
-          
+
           // Add paragraph spacing after content
           yPos += paragraphSpacing
         } else {
@@ -362,6 +372,57 @@ class PDFService {
         yPos += lineHeight
       })
     }
+
+    return yPos
+  }
+
+  /**
+   * Render paragraph with floated span (e.g., recipient info with date on right)
+   * Renders main content on left, floated content on right on the same line
+   */
+  renderParagraphWithFloat(doc, element, floatedSpan, startY, margin, maxWidth, pageWidth, lineHeight) {
+    let yPos = startY
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+
+    // Get the floated text (date)
+    const floatedText = floatedSpan.textContent.trim()
+
+    // Get the main text (everything except the floated span)
+    const mainTextNode = element.cloneNode(true)
+    const floatedClone = mainTextNode.querySelector('span[style*="float: right"]')
+    if (floatedClone) {
+      floatedClone.remove()
+    }
+
+    // Split main text by <br> tags to get individual lines
+    const mainHTML = mainTextNode.innerHTML
+    const lines = mainHTML.split(/<br\s*\/?>/i).map(line => {
+      // Remove HTML tags and trim
+      const temp = document.createElement('div')
+      temp.innerHTML = line
+      return (temp.textContent || temp.innerText || '').trim()
+    }).filter(line => line)
+
+    // Render each line of main content (recipient info)
+    lines.forEach((line, index) => {
+      const isLastLine = index === lines.length - 1
+
+      if (isLastLine && floatedText) {
+        // Last line: render recipient address on left, date on right
+        doc.text(line, margin, yPos)
+
+        // Render date on the right
+        const dateWidth = doc.getTextWidth(floatedText)
+        const dateX = pageWidth - margin - dateWidth
+        doc.text(floatedText, dateX, yPos)
+      } else {
+        // Regular line: just render on left
+        doc.text(line, margin, yPos)
+      }
+
+      yPos += lineHeight
+    })
 
     return yPos
   }
