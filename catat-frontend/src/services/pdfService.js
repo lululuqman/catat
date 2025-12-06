@@ -32,11 +32,14 @@ class PDFService {
     const htmlDoc = parser.parseFromString(letterContent, 'text/html')
     const body = htmlDoc.body
 
+    const anchors = {}
+
     /**
      * Normalize common official-letter structure without changing content
      * - Inserts a separator line after sender block
      * - Right-aligns detected dates
      * - Underlines detected subject/title lines
+     * - Marks date to align with recipient's last line when possible
      */
     const enhanceLetterStructure = (bodyEl) => {
       if (!bodyEl) return
@@ -62,10 +65,17 @@ class PDFService {
       }
 
       // 1) Right-align date if detected and not already aligned
-      paragraphs.forEach(p => {
+      paragraphs.forEach((p, idx) => {
         const text = normalizeText(p.textContent)
         if (dateRegex.test(text)) {
           addAlignmentIfMissing(p, 'right')
+
+          // Mark this date to align with previous paragraph (recipient last line) if available
+          const anchorPara = paragraphs[idx - 1]
+          if (anchorPara) {
+            anchorPara.setAttribute('data-anchor', 'recipient-end')
+            p.setAttribute('data-align-with', 'recipient-end')
+          }
         }
       })
 
@@ -130,7 +140,13 @@ class PDFService {
 
       // PARAGRAPH <p>
       if (tagName === 'p') {
-        yPos = checkPageBreak()
+        // If this paragraph should align with a stored anchor (e.g., date with recipient line)
+        const alignWith = element.getAttribute('data-align-with')
+        if (alignWith && anchors[alignWith] !== undefined) {
+          yPos = anchors[alignWith]
+        } else {
+          yPos = checkPageBreak()
+        }
 
         // Get all text content from paragraph (including formatted text)
         let paragraphText = ''
@@ -169,6 +185,12 @@ class PDFService {
           // Process text with formatting
           yPos = this.renderFormattedParagraph(doc, element, yPos, margin, maxWidth, pageWidth, lineHeight, align)
           
+          // Store anchor after rendering if this paragraph provides one
+          const anchorName = element.getAttribute('data-anchor')
+          if (anchorName) {
+            anchors[anchorName] = yPos
+          }
+
           // Add paragraph spacing after content
           yPos += paragraphSpacing
         } else {
