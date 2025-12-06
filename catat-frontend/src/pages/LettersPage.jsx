@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { FileText, Plus, Search, Trash2, Download, Edit } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FileText, Plus, Search, Trash2, Download, Edit, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { supabaseService } from '../services/supabaseService'
+import { pdfService } from '../services/pdfService'
 import { getLetterTypeDisplay, getLanguageDisplay } from '../templates/letterTemplates'
 
 function LettersPage() {
@@ -8,40 +10,47 @@ function LettersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterLanguage, setFilterLanguage] = useState('all')
-  
-  // Mock letters data - later you'll replace this with real data from Supabase
-  const [letters, setLetters] = useState([
-    {
-      id: 1,
-      title: 'Complaint to DBKL',
-      content: 'This is a sample complaint letter about road conditions...',
-      letter_type: 'complaint',
-      language: 'en',
-      tone_detected: 'formal',
-      urgency: 'high',
-      createdAt: '2025-12-06',
-    },
-    {
-      id: 2,
-      title: 'MC Letter',
-      content: 'Medical certificate request letter...',
-      letter_type: 'mc',
-      language: 'en',
-      tone_detected: 'formal',
-      urgency: 'medium',
-      createdAt: '2025-12-05',
-    },
-    {
-      id: 3,
-      title: 'Proposal Surat',
-      content: 'Cadangan projek baru...',
-      letter_type: 'proposal',
-      language: 'ms',
-      tone_detected: 'formal',
-      urgency: 'low',
-      createdAt: '2025-12-04',
-    },
-  ])
+  const [letters, setLetters] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Fetch letters from Supabase on mount
+  useEffect(() => {
+    loadLetters()
+  }, [])
+
+  const loadLetters = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      if (!supabaseService.isConfigured()) {
+        // Use mock data if Supabase not configured
+        setLetters([
+          {
+            id: 'mock-1',
+            title: 'Sample Complaint Letter',
+            content: 'This is a sample letter. Configure Supabase to save real letters.',
+            letter_type: 'complaint',
+            language: 'en',
+            tone_detected: 'formal',
+            urgency: 'medium',
+            created_at: new Date().toISOString(),
+          }
+        ])
+        setError('Supabase not configured. Please set up your .env file.')
+      } else {
+        const data = await supabaseService.getLetters()
+        setLetters(data)
+      }
+    } catch (err) {
+      console.error('Failed to load letters:', err)
+      setError(err.message)
+      setLetters([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredLetters = letters.filter(letter => {
     const matchesSearch = 
@@ -54,9 +63,39 @@ function LettersPage() {
     return matchesSearch && matchesType && matchesLanguage
   })
 
-  const handleDeleteLetter = (id) => {
-    if (confirm('Are you sure you want to delete this letter?')) {
-      setLetters(letters.filter(letter => letter.id !== id))
+  const handleDeleteLetter = async (id) => {
+    if (!confirm('Are you sure you want to delete this letter?')) {
+      return
+    }
+    
+    try {
+      if (supabaseService.isConfigured()) {
+        await supabaseService.deleteLetter(id)
+        // Refresh the list
+        await loadLetters()
+        alert('Letter deleted successfully!')
+      } else {
+        setLetters(letters.filter(letter => letter.id !== id))
+      }
+    } catch (error) {
+      console.error('Failed to delete letter:', error)
+      alert('Failed to delete letter: ' + error.message)
+    }
+  }
+
+  const handleExportPDF = (letter) => {
+    try {
+      const pdfMetadata = {
+        letter_type: letter.letter_type,
+        language: letter.language
+      }
+      
+      const doc = pdfService.generateLetterPDF(letter.content, pdfMetadata)
+      const filename = `${letter.title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`
+      pdfService.downloadPDF(doc, filename)
+    } catch (error) {
+      console.error('PDF export error:', error)
+      alert('Failed to export PDF: ' + error.message)
     }
   }
 
@@ -88,13 +127,23 @@ function LettersPage() {
                 Catat
               </span>
             </div>
-            <button 
-              onClick={() => navigate('/generate')}
-              className="btn-primary flex items-center gap-2"
-            >
-              <Plus className="h-5 w-5" />
-              New Letter
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={loadLetters}
+                disabled={isLoading}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
+                title="Refresh letters"
+              >
+                <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <button 
+                onClick={() => navigate('/generate')}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                New Letter
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -109,6 +158,11 @@ function LettersPage() {
           <p className="text-gray-600">
             {letters.length} {letters.length === 1 ? 'letter' : 'letters'} in total
           </p>
+          {error && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">⚠️ {error}</p>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
@@ -158,8 +212,15 @@ function LettersPage() {
           </div>
         </div>
 
-        {/* Letters Grid */}
-        {filteredLetters.length === 0 ? (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-20">
+            <RefreshCw className="h-16 w-16 text-primary-600 mx-auto mb-4 animate-spin" />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              Loading letters...
+            </h3>
+          </div>
+        ) : filteredLetters.length === 0 ? (
           <div className="text-center py-20">
             <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">
@@ -224,7 +285,7 @@ function LettersPage() {
 
                 {/* Date */}
                 <p className="text-sm text-gray-400 mb-4">
-                  {new Date(letter.createdAt).toLocaleDateString('en-US', {
+                  {new Date(letter.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -241,9 +302,9 @@ function LettersPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => {
-                      // TODO: Export PDF
-                      alert('PDF export coming soon!')
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleExportPDF(letter)
                     }}
                     className="flex-1 text-sm text-gray-600 hover:text-secondary-600 font-medium transition-colors flex items-center justify-center gap-1"
                   >

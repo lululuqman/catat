@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Download, Trash2 } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import { pdfService } from '../services/pdfService'
+import { supabaseService } from '../services/supabaseService'
 import { formatMalaysianLetter } from '../templates/letterTemplates'
 
 function LetterEditorPage() {
@@ -19,54 +20,114 @@ function LetterEditorPage() {
   const [transcript, setTranscript] = useState(null)
 
   useEffect(() => {
-    // Load letter data from navigation state or Supabase (if editing existing)
-    if (location.state) {
-      const { letter, metadata: meta, structuredData: structured, transcript: trans } = location.state
-      
-      if (letter) {
-        setContent(letter)
+    const loadLetter = async () => {
+      // Load letter data from navigation state or Supabase (if editing existing)
+      if (location.state) {
+        const { letter, metadata: meta, structuredData: structured, transcript: trans } = location.state
+        
+        if (letter) {
+          setContent(letter)
+        }
+        
+        if (meta) {
+          setMetadata(meta)
+          setTitle(`${meta.letter_type} Letter - ${new Date().toLocaleDateString()}`)
+        }
+        
+        if (structured) {
+          setStructuredData(structured)
+        }
+        
+        if (trans) {
+          setTranscript(trans)
+        }
+      } else if (id && id !== 'new') {
+        // Load from Supabase by ID
+        try {
+          if (supabaseService.isConfigured()) {
+            const letterData = await supabaseService.getLetter(id)
+            setTitle(letterData.title || '')
+            setContent(letterData.content || '')
+            setMetadata(letterData.metadata)
+            setStructuredData(letterData.structured_data)
+            setTranscript(letterData.transcript)
+          } else {
+            console.warn('Supabase not configured')
+            navigate('/letters')
+          }
+        } catch (error) {
+          console.error('Failed to load letter:', error)
+          alert('Failed to load letter: ' + error.message)
+          navigate('/letters')
+        }
       }
-      
-      if (meta) {
-        setMetadata(meta)
-        setTitle(`${meta.letter_type} Letter - ${new Date().toLocaleDateString()}`)
-      }
-      
-      if (structured) {
-        setStructuredData(structured)
-      }
-      
-      if (trans) {
-        setTranscript(trans)
-      }
-    } else if (id && id !== 'new') {
-      // TODO: Load from Supabase by ID
-      // For now, redirect back if no state
-      navigate('/letters')
     }
+    
+    loadLetter()
   }, [location, id, navigate])
 
   const handleSave = async () => {
+    if (!title.trim()) {
+      alert('Please enter a title for your letter')
+      return
+    }
+    
+    if (!content.trim()) {
+      alert('Letter content cannot be empty')
+      return
+    }
+    
     setIsSaving(true)
     
     try {
-      // TODO: Save to Supabase
-      // For now, just simulate save
-      await new Promise(resolve => setTimeout(resolve, 500))
+      if (!supabaseService.isConfigured()) {
+        alert('Supabase is not configured. Please set up your .env file with Supabase credentials.')
+        setIsSaving(false)
+        return
+      }
       
-      alert('Letter saved successfully!')
+      if (id && id !== 'new') {
+        // Update existing letter
+        await supabaseService.updateLetter(id, {
+          title,
+          content
+        })
+        alert('Letter updated successfully!')
+      } else {
+        // Save new letter
+        const savedLetter = await supabaseService.saveLetter({
+          title,
+          content,
+          metadata,
+          structuredData,
+          transcript
+        })
+        alert('Letter saved successfully!')
+      }
+      
       navigate('/letters')
     } catch (error) {
+      console.error('Save error:', error)
       alert('Failed to save letter: ' + error.message)
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this letter?')) {
-      // TODO: Delete from Supabase
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this letter?')) {
+      return
+    }
+    
+    try {
+      if (id && id !== 'new' && supabaseService.isConfigured()) {
+        await supabaseService.deleteLetter(id)
+        alert('Letter deleted successfully!')
+      }
       navigate('/letters')
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('Failed to delete letter: ' + error.message)
     }
   }
 
