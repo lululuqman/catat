@@ -16,9 +16,10 @@ class ApiService {
    * @param {Blob} audioBlob - The recorded audio blob
    * @param {string} language - Language: 'en', 'ms', or 'mixed'
    * @param {string} letterType - Letter type: 'complaint', 'proposal', 'mc', 'general', 'official'
+   * @param {Object} contactInfo - User-provided contact information (optional)
    * @returns {Promise} Response with transcript, structured_data, letter, metadata
    */
-  async generateLetter(audioBlob, language, letterType) {
+  async generateLetter(audioBlob, language, letterType, contactInfo = {}) {
     try {
       const formData = new FormData()
       
@@ -30,6 +31,15 @@ class ApiService {
       formData.append('audio', audioFile)
       formData.append('language', language)
       formData.append('letter_type', letterType)
+      
+      // Add user-provided contact information if available
+      if (contactInfo.senderName) formData.append('sender_name', contactInfo.senderName)
+      if (contactInfo.senderAddress) formData.append('sender_address', contactInfo.senderAddress)
+      if (contactInfo.senderContact) formData.append('sender_contact', contactInfo.senderContact)
+      if (contactInfo.recipientName) formData.append('recipient_name', contactInfo.recipientName)
+      if (contactInfo.recipientTitle) formData.append('recipient_title', contactInfo.recipientTitle)
+      if (contactInfo.recipientOrganization) formData.append('recipient_organization', contactInfo.recipientOrganization)
+      if (contactInfo.recipientAddress) formData.append('recipient_address', contactInfo.recipientAddress)
 
       const response = await apiClient.post('/api/generate-letter', formData, {
         headers: {

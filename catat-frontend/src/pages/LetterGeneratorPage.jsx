@@ -15,6 +15,16 @@ function LetterGeneratorPage() {
   const [generationStep, setGenerationStep] = useState(null)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  
+  // User input fields
+  const [senderName, setSenderName] = useState('')
+  const [senderAddress, setSenderAddress] = useState('')
+  const [senderContact, setSenderContact] = useState('')
+  const [recipientName, setRecipientName] = useState('')
+  const [recipientTitle, setRecipientTitle] = useState('')
+  const [recipientOrganization, setRecipientOrganization] = useState('')
+  const [recipientAddress, setRecipientAddress] = useState('')
+  const [showOptionalFields, setShowOptionalFields] = useState(false)
 
   const handleRecordingComplete = (blob) => {
     setAudioBlob(blob)
@@ -40,7 +50,19 @@ function LetterGeneratorPage() {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       setGenerationStep('Generating letter...')
-      const response = await apiService.generateLetter(audioBlob, language, letterType)
+      
+      // Prepare contact info to send to backend
+      const contactInfo = {
+        senderName,
+        senderAddress,
+        senderContact,
+        recipientName,
+        recipientTitle,
+        recipientOrganization,
+        recipientAddress
+      }
+      
+      const response = await apiService.generateLetter(audioBlob, language, letterType, contactInfo)
       
       setResult(response)
       setGenerationStep('Complete!')
@@ -56,11 +78,29 @@ function LetterGeneratorPage() {
 
   const handleEditLetter = () => {
     if (result) {
+      // Merge user-provided info with AI-extracted info
+      const mergedStructuredData = {
+        ...result.structured_data,
+        sender: {
+          ...result.structured_data.sender,
+          name: senderName || result.structured_data.sender.name,
+          address: senderAddress || result.structured_data.sender.address,
+          contact: senderContact || result.structured_data.sender.contact,
+        },
+        recipient: {
+          ...result.structured_data.recipient,
+          name: recipientName || result.structured_data.recipient.name,
+          title: recipientTitle || result.structured_data.recipient.title,
+          organization: recipientOrganization || result.structured_data.recipient.organization,
+          address: recipientAddress || result.structured_data.recipient.address,
+        }
+      }
+      
       navigate('/letters/new/edit', {
         state: {
           letter: result.letter,
           metadata: result.metadata,
-          structuredData: result.structured_data,
+          structuredData: mergedStructuredData,
           transcript: result.transcript
         }
       })
@@ -104,7 +144,8 @@ function LetterGeneratorPage() {
         {/* Configuration Form */}
         <div className="card mb-6">
           <h2 className="text-xl font-semibold mb-4">Letter Configuration</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             {/* Language Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -144,6 +185,145 @@ function LetterGeneratorPage() {
               </select>
               <p className="mt-1 text-sm text-gray-500">
                 Select the type of letter you want to generate
+              </p>
+            </div>
+          </div>
+
+          {/* Sender and Recipient Information */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Sender Info */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 mb-3">Sender (Your Info)</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Name <span className="text-primary-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    placeholder="e.g., Ahmad bin Abdullah"
+                    disabled={isGenerating}
+                    className="input-field"
+                  />
+                </div>
+
+                {showOptionalFields && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Your Address (Optional)
+                      </label>
+                      <textarea
+                        value={senderAddress}
+                        onChange={(e) => setSenderAddress(e.target.value)}
+                        placeholder="e.g., 123 Jalan Tun Razak, Kuala Lumpur"
+                        disabled={isGenerating}
+                        rows="2"
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Your Contact (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={senderContact}
+                        onChange={(e) => setSenderContact(e.target.value)}
+                        placeholder="e.g., 012-345-6789 or email@example.com"
+                        disabled={isGenerating}
+                        className="input-field"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Recipient Info */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 mb-3">Recipient (Send To)</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Recipient Name <span className="text-primary-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder="e.g., DBKL or YB. Datuk Ahmad"
+                    disabled={isGenerating}
+                    className="input-field"
+                  />
+                </div>
+
+                {showOptionalFields && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Title/Position (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={recipientTitle}
+                        onChange={(e) => setRecipientTitle(e.target.value)}
+                        placeholder="e.g., Mayor, Director, YB"
+                        disabled={isGenerating}
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Organization (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={recipientOrganization}
+                        onChange={(e) => setRecipientOrganization(e.target.value)}
+                        placeholder="e.g., Dewan Bandaraya Kuala Lumpur"
+                        disabled={isGenerating}
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Organization Address (Optional)
+                      </label>
+                      <textarea
+                        value={recipientAddress}
+                        onChange={(e) => setRecipientAddress(e.target.value)}
+                        placeholder="e.g., Menara DBKL, Jalan Raja Laut"
+                        disabled={isGenerating}
+                        rows="2"
+                        className="input-field"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Toggle Optional Fields */}
+            <div className="mt-4">
+              <button
+                onClick={() => setShowOptionalFields(!showOptionalFields)}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                {showOptionalFields ? '− Hide Optional Fields' : '+ Show Optional Fields (Address, Contact, etc.)'}
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                💡 <strong>Tip:</strong> Fill in at least your name and recipient name. AI will try to extract additional details from your voice recording.
               </p>
             </div>
           </div>
