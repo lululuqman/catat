@@ -1,112 +1,153 @@
 /**
  * Letter Formatting Utilities
  * Converts plain text letters to properly formatted HTML for Quill editor
+ * Supports Malaysian formal letter schema with markdown-style formatting
+ *
+ * Malaysian Formal Letter Structure:
+ * - Sender info (left-aligned)
+ * - Horizontal separator (<hr>)
+ * - Recipient info with date floated right on same line
+ * - Date in CAPITAL LETTERS
+ * - Salutation
+ * - Subject (markdown-style bold with **)
+ * - Body paragraphs
+ * - Closing
  */
 
 /**
  * Convert plain text letter to HTML with proper paragraph formatting
+ * Supports Malaysian formal letter schema with floated dates
  * @param {string} letterText - Plain text letter content
  * @returns {string} HTML formatted letter
  */
 export const formatLetterToHTML = (letterText) => {
   if (!letterText) return ''
-  
+
   // If already contains HTML tags, return as-is
-  if (letterText.includes('<p>') || letterText.includes('<br>')) {
+  if (letterText.includes('<p>') || letterText.includes('<br>') || letterText.includes('<hr>')) {
     return letterText
   }
-  
+
   // Split by double newlines to identify paragraphs
   const paragraphs = letterText.split(/\n\n+/)
-  
+
   // Convert each paragraph to HTML
   const htmlParagraphs = paragraphs.map(para => {
     // Trim whitespace
     const trimmed = para.trim()
     if (!trimmed) return ''
-    
+
+    // Check if this is a separator line
+    if (trimmed.match(/^[-_=]{3,}$/)) {
+      return '<hr>'
+    }
+
     // Replace single newlines with <br> tags within the paragraph
     const withBreaks = trimmed.replace(/\n/g, '<br>')
-    
+
     // Wrap in paragraph tags
     return `<p>${withBreaks}</p>`
   }).filter(p => p) // Remove empty paragraphs
-  
-  return htmlParagraphs.join('\n')
+
+  return htmlParagraphs.join('\n\n')
 }
 
 /**
  * Convert HTML to plain text for PDF export
+ * Handles Malaysian formal letter format with floated dates
  * @param {string} html - HTML content
  * @returns {string} Plain text with proper line breaks
  */
 export const htmlToPlainText = (html) => {
   if (!html) return ''
-  
+
   // Create a temporary element
   const temp = document.createElement('div')
   temp.innerHTML = html
-  
+
   // Replace <p> tags with double newlines for paragraph breaks
   let processedHtml = html
-    .replace(/<\/p>\s*<p>/gi, '\n\n')  // Between paragraphs
-    .replace(/<p>/gi, '')               // Remove opening <p>
-    .replace(/<\/p>/gi, '\n\n')         // Replace closing </p> with newlines
-    .replace(/<br\s*\/?>/gi, '\n')      // Replace <br> with newline
-    .replace(/<strong>/gi, '')          // Remove <strong>
-    .replace(/<\/strong>/gi, '')        // Remove </strong>
-    .replace(/<[^>]+>/g, '')            // Remove any remaining HTML tags
-  
+    .replace(/<hr\s*\/?>/gi, '\n---\n')  // Replace <hr> with separator
+    .replace(/<\/p>\s*<p>/gi, '\n\n')    // Between paragraphs
+    .replace(/<p[^>]*>/gi, '')            // Remove opening <p> (including with attributes)
+    .replace(/<\/p>/gi, '\n\n')           // Replace closing </p> with newlines
+    .replace(/<br\s*\/?>/gi, '\n')        // Replace <br> with newline
+    .replace(/<strong>/gi, '')            // Remove <strong>
+    .replace(/<\/strong>/gi, '')          // Remove </strong>
+    .replace(/<span[^>]*>/gi, '')         // Remove <span> (including floated ones)
+    .replace(/<\/span>/gi, '')            // Remove </span>
+    .replace(/\*\*/g, '')                 // Remove markdown-style bold markers
+    .replace(/<[^>]+>/g, '')              // Remove any remaining HTML tags
+
   // Create temp element with processed HTML to get clean text
   temp.innerHTML = processedHtml
   let text = temp.textContent || temp.innerText || ''
-  
+
   // Clean up excessive newlines (more than 2 in a row)
   text = text.replace(/\n{3,}/g, '\n\n')
-  
+
   // Trim whitespace from start and end
   text = text.trim()
-  
+
   return text
 }
 
 /**
- * Ensure letter has proper Malaysian formatting structure
+ * Ensure letter has proper Malaysian formal letter formatting structure
+ * Checks for required elements: separator, salutation, subject
  * @param {string} content - Letter content (HTML or plain text)
  * @returns {string} Properly formatted HTML
  */
 export const ensureMalaysianFormat = (content) => {
   const formatted = formatLetterToHTML(content)
-  
-  // Check if it has the basic structure
-  const hasSubject = formatted.includes('Re:') || formatted.includes('Rujukan:')
+
+  // Check if it has the Malaysian formal letter structure
+  const hasSeparator = formatted.includes('<hr>') || formatted.includes('---')
+  const hasSubject = formatted.includes('Subject:') || formatted.includes('Perkara:') ||
+                     formatted.includes('Re:') || formatted.includes('Rujukan:') ||
+                     formatted.includes('**Subject') || formatted.includes('**Perkara')
   const hasSalutation = formatted.includes('Dear ') || formatted.includes('Tuan') || formatted.includes('Puan')
-  
-  if (!hasSubject || !hasSalutation) {
-    console.warn('Letter may be missing standard Malaysian format elements')
+  const hasFloatedDate = formatted.includes('float: right') || formatted.includes('style="float')
+
+  // Log warnings for missing elements (helpful for debugging)
+  if (!hasSeparator) {
+    console.warn('Letter may be missing horizontal separator line (<hr>)')
   }
-  
+  if (!hasSubject) {
+    console.warn('Letter may be missing subject line')
+  }
+  if (!hasSalutation) {
+    console.warn('Letter may be missing salutation (Dear Sir/Madam or Tuan/Puan)')
+  }
+  if (!hasFloatedDate) {
+    console.info('Letter may be using old format (date not floated right)')
+  }
+
   return formatted
 }
 
 /**
  * Add proper spacing between letter sections
+ * Updates for Malaysian formal letter schema
  * @param {string} html - HTML content
  * @returns {string} HTML with proper spacing
  */
 export const addLetterSpacing = (html) => {
   // Add extra spacing after specific sections
   let spaced = html
-  
-  // Add space after sender info (before date)
-  spaced = spaced.replace(/(<\/p>\s*<p>\d{1,2}\s+\w+\s+\d{4}<\/p>)/i, '</p>\n\n$1')
-  
-  // Add space after date (before recipient)
-  spaced = spaced.replace(/(\d{4}<\/p>\s*<p>)/i, '$1')
-  
-  // Add space after subject line
-  spaced = spaced.replace(/(Re:.*?<\/strong><\/p>)/i, '$1\n')
-  
+
+  // Ensure spacing after <hr> separator
+  spaced = spaced.replace(/<hr>\s*/gi, '<hr>\n\n')
+
+  // Ensure spacing after subject line (markdown or HTML)
+  spaced = spaced.replace(/(\*\*Subject:.*?\*\*<\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(\*\*Perkara:.*?\*\*<\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(Re:.*?<\/strong><\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(Rujukan:.*?<\/strong><\/p>)/gi, '$1\n\n')
+
+  // Clean up excessive spacing
+  spaced = spaced.replace(/\n{3,}/g, '\n\n')
+
   return spaced
 }
 

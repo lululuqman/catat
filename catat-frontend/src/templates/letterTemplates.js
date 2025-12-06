@@ -1,139 +1,164 @@
 /**
  * Malaysian Letter Templates
- * Formats letters according to Malaysian official letter standards
+ * Formats letters according to Malaysian formal letter standards
+ * Uses markdown-style HTML formatting with date in CAPITAL LETTERS
  */
 
 /**
- * Format date in Malaysian style
+ * Format date in Malaysian style with CAPITAL LETTERS
  * @param {Date} date - Date object
  * @param {string} language - 'en' or 'ms'
- * @returns {string} Formatted date
+ * @returns {string} Formatted date in CAPITAL LETTERS
  */
 export const formatMalaysianDate = (date = new Date(), language = 'en') => {
   const months = {
-    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    ms: ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember']
+    en: ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'],
+    ms: ['JANUARI', 'FEBRUARI', 'MAC', 'APRIL', 'MEI', 'JUN', 'JULAI', 'OGOS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DISEMBER']
   }
-  
+
   const day = date.getDate()
   const month = months[language][date.getMonth()]
   const year = date.getFullYear()
-  
+
+  // Return date in CAPITAL LETTERS
   return `${day} ${month} ${year}`
 }
 
 /**
- * Format English Letter
+ * Format English Letter with Malaysian Formal Schema
+ * Returns HTML with markdown-style formatting
  */
 export const formatEnglishLetter = (content, metadata = {}, structuredData = {}) => {
   const date = formatMalaysianDate(new Date(), 'en')
-  
+
   const sender = structuredData?.sender || {}
   const recipient = structuredData?.recipient || {}
   const subject = structuredData?.subject || 'Letter'
-  
+
   let letter = ''
-  
-  // Sender info
-  if (sender.name) letter += `${sender.name}\n`
-  if (sender.address) letter += `${sender.address}\n`
-  if (sender.contact) letter += `${sender.contact}\n`
-  letter += `\n`
-  
-  // Date
-  letter += `${date}\n\n`
-  
-  // Recipient info
-  if (recipient.name) letter += `${recipient.name}\n`
-  if (recipient.title) letter += `${recipient.title}\n`
-  if (recipient.organization) letter += `${recipient.organization}\n`
-  if (recipient.address) letter += `${recipient.address}\n`
-  letter += `\n`
-  
+
+  // Sender info (left-aligned)
+  letter += '<p>'
+  if (sender.name) letter += sender.name
+  if (sender.address) letter += '<br>' + sender.address
+  if (sender.contact) letter += '<br>' + sender.contact
+  letter += '</p>\n\n'
+
+  // Horizontal separator
+  letter += '<hr>\n\n'
+
+  // Recipient info + Date (recipient left, date right on same line)
+  letter += '<p>'
+  if (recipient.name) letter += recipient.name
+  if (recipient.title) letter += '<br>' + recipient.title
+  if (recipient.organization) letter += '<br>' + recipient.organization
+  if (recipient.address) letter += '<br>' + recipient.address
+  // Date floated to the right on the same line as recipient's last line
+  letter += `<span style="float: right;">${date}</span>`
+  letter += '</p>\n\n'
+
   // Salutation
-  letter += `Dear Sir/Madam,\n\n`
-  
-  // Subject
-  letter += `Re: ${subject}\n\n`
-  
-  // Content
-  letter += content
-  
+  letter += '<p>Dear Sir/Madam,</p>\n\n'
+
+  // Subject (markdown-style bold)
+  letter += `<p>**Subject: ${subject}**</p>\n\n`
+
+  // Content (wrap in paragraph if needed)
+  if (content && !content.startsWith('<p>')) {
+    letter += `<p>${content}</p>\n\n`
+  } else {
+    letter += content + '\n\n'
+  }
+
   // Closing
   if (!content.includes('Yours faithfully') && !content.includes('Yours sincerely')) {
-    letter += `\n\nYours faithfully,\n\n`
-    letter += sender.name || '[Your Name]'
+    letter += '<p>Yours faithfully,<br>'
+    letter += (sender.name || '[Your Name]')
+    letter += '</p>'
   }
-  
+
   return letter
 }
 
 /**
- * Format Malay Letter
+ * Format Malay Letter with Malaysian Formal Schema
+ * Returns HTML with markdown-style formatting
  */
 export const formatMalayLetter = (content, metadata = {}, structuredData = {}) => {
   const date = formatMalaysianDate(new Date(), 'ms')
-  
+
   const sender = structuredData?.sender || {}
   const recipient = structuredData?.recipient || {}
   const subject = structuredData?.subject || 'Surat'
-  
+
   let letter = ''
-  
-  // Sender info
-  if (sender.name) letter += `${sender.name}\n`
-  if (sender.address) letter += `${sender.address}\n`
-  if (sender.contact) letter += `${sender.contact}\n`
-  letter += `\n`
-  
-  // Date
-  letter += `${date}\n\n`
-  
-  // Recipient info
-  if (recipient.name) letter += `${recipient.name}\n`
-  if (recipient.title) letter += `${recipient.title}\n`
-  if (recipient.organization) letter += `${recipient.organization}\n`
-  if (recipient.address) letter += `${recipient.address}\n`
-  letter += `\n`
-  
+
+  // Sender info (left-aligned)
+  letter += '<p>'
+  if (sender.name) letter += sender.name
+  if (sender.address) letter += '<br>' + sender.address
+  if (sender.contact) letter += '<br>' + sender.contact
+  letter += '</p>\n\n'
+
+  // Horizontal separator
+  letter += '<hr>\n\n'
+
+  // Recipient info + Date (recipient left, date right on same line)
+  letter += '<p>'
+  if (recipient.name) letter += recipient.name
+  if (recipient.title) letter += '<br>' + recipient.title
+  if (recipient.organization) letter += '<br>' + recipient.organization
+  if (recipient.address) letter += '<br>' + recipient.address
+  // Date floated to the right on the same line as recipient's last line
+  letter += `<span style="float: right;">${date}</span>`
+  letter += '</p>\n\n'
+
   // Salutation
-  letter += `Tuan/Puan,\n\n`
-  
-  // Subject
-  letter += `Rujukan: ${subject}\n\n`
-  
+  letter += '<p>Tuan/Puan,</p>\n\n'
+
+  // Subject (markdown-style bold)
+  letter += `<p>**Perkara: ${subject}**</p>\n\n`
+
   // Opening
   if (!content.includes('Dengan segala hormatnya')) {
-    letter += `Dengan segala hormatnya, `
+    letter += '<p>Dengan segala hormatnya, '
+  } else {
+    letter += '<p>'
   }
-  
+
   // Content
-  letter += content
-  
+  if (content && !content.startsWith('<p>')) {
+    letter += content + '</p>\n\n'
+  } else {
+    letter += content + '\n\n'
+  }
+
   // Closing
   if (!content.includes('Sekian, terima kasih')) {
-    letter += `\n\nSekian, terima kasih.\n\n`
-    letter += `Yang benar,\n\n`
-    letter += sender.name || '[Nama Anda]'
+    letter += '<p>Sekian, terima kasih.</p>\n\n'
+    letter += '<p>Yang benar,<br>'
+    letter += (sender.name || '[Nama Anda]')
+    letter += '</p>'
   }
-  
+
   return letter
 }
 
 /**
- * Main function to format Malaysian letter
+ * Main function to format Malaysian letter with HTML and markdown-style formatting
  * @param {string} content - Letter content from AI
  * @param {object} metadata - Letter metadata
  * @param {string} language - 'en', 'ms', or 'mixed'
  * @param {object} structuredData - Structured data from backend
- * @returns {string} Formatted letter
+ * @returns {string} Formatted letter in HTML with Malaysian formal schema
  */
 export const formatMalaysianLetter = (content, metadata = {}, language = 'en', structuredData = {}) => {
-  // If content already looks formatted (has sender/recipient info), return as-is
-  if (content.includes('Dear Sir/Madam') || content.includes('Tuan/Puan')) {
+  // If content already looks formatted (has HTML tags or formal salutations), return as-is
+  if (content.includes('<p>') || content.includes('<hr>') ||
+      content.includes('Dear Sir/Madam') || content.includes('Tuan/Puan')) {
     return content
   }
-  
+
   // Otherwise format based on language
   if (language === 'ms') {
     return formatMalayLetter(content, metadata, structuredData)
