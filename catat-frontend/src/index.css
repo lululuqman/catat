@@ -90,3 +90,22 @@ hr {
   content: "" !important;
   margin-top: 0.5em !important;
 }
+
+/* Override prose styles for letter display in LetterGeneratorPage */
+.prose p {
+  margin-bottom: 0.4em !important;
+  margin-top: 0 !important;
+}
+
+.prose hr {
+  border: none !important;
+  border-top: 1px solid #000 !important;
+  margin: 1em 0 !important;
+}
+
+/* Right-aligned date in letter display */
+.prose p[style*="text-align: right"],
+p[style*="text-align: right"] {
+  text-align: right !important;
+  margin-bottom: 0.4em !important;
+}

@@ -6,7 +6,6 @@ import 'react-quill/dist/quill.snow.css'
 import { pdfService } from '../services/pdfService'
 import { supabaseService } from '../services/supabaseService'
 import { formatMalaysianLetter } from '../templates/letterTemplates'
-import { formatLetterToHTML, htmlToPlainText } from '../utils/letterFormatter'
 
 function LetterEditorPage() {
   const navigate = useNavigate()
@@ -27,9 +26,8 @@ function LetterEditorPage() {
         const { letter, metadata: meta, structuredData: structured, transcript: trans } = location.state
         
         if (letter) {
-          // Convert plain text to HTML if needed
-          const formattedLetter = formatLetterToHTML(letter)
-          setContent(formattedLetter)
+          // Backend already generates proper HTML structure, use as-is
+          setContent(letter)
         }
         
         if (meta) {
