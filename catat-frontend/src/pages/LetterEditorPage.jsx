@@ -236,7 +236,7 @@ function LetterEditorPage() {
         {/* Metadata Info */}
         {metadata && (
           <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex flex-wrap gap-4 text-sm mb-2">
               <span className="font-medium text-blue-900">
                 Type: <span className="font-normal text-blue-700">{metadata.letter_type}</span>
               </span>
@@ -253,6 +253,11 @@ function LetterEditorPage() {
                   Urgency: <span className="font-normal text-blue-700">{metadata.urgency}</span>
                 </span>
               )}
+            </div>
+            <div className="pt-2 border-t border-blue-200">
+              <span className="inline-flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                ✓ Malaysian Formal Letter Format
+              </span>
             </div>
           </div>
         )}
@@ -300,13 +305,20 @@ function LetterEditorPage() {
 
         {/* Tips */}
         <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-          <h3 className="font-semibold text-gray-900 mb-2">Tips:</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">✨ Letter Format Features:</h3>
+          <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside mb-3">
+            <li><strong>Malaysian Formal Schema:</strong> Follows official letter standards</li>
+            <li><strong>Recipient left, Date right:</strong> Date appears on same line as recipient address</li>
+            <li><strong>Capital letters:</strong> Date in CAPITAL LETTERS (e.g., 6 DECEMBER 2025)</li>
+            <li><strong>Markdown style:</strong> Clean formatting with **bold** for subjects</li>
+          </ul>
+          <h3 className="font-semibold text-gray-900 mb-2 mt-4">📝 Editing Tips:</h3>
           <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
             <li>Edit the letter content to add any missing details</li>
             <li>Ensure sender and recipient information is correct</li>
-            <li>Check the date format matches Malaysian standards</li>
+            <li>Date is automatically formatted in Malaysian standard</li>
             <li>Click "Save Letter" to store it in your library</li>
-            <li>Use "Export PDF" to download a formatted copy</li>
+            <li>Use "Export PDF" to download with proper formatting</li>
           </ul>
         </div>
       </div>

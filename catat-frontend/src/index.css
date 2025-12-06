@@ -72,3 +72,25 @@
   content: "" !important;
   margin-top: 0.5em !important;
 }
+
+/* Malaysian formal letter format - floated date on right */
+.ql-editor span[style*="float: right"],
+span[style*="float: right"] {
+  float: right !important;
+  margin-left: 1em !important;
+}
+
+/* Ensure proper clearfix for paragraphs with floated elements */
+.ql-editor p::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Horizontal line styling for letter separator */
+.ql-editor hr,
+hr {
+  border: none !important;
+  border-top: 1px solid #000 !important;
+  margin: 1.5em 0 !important;
+}

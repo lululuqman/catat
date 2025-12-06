@@ -136,9 +136,13 @@ function LetterGeneratorPage() {
           <h1 className="text-4xl font-display font-bold text-gray-900 mb-2">
             Generate Letter
           </h1>
-          <p className="text-gray-600">
-            Record your message and let AI transform it into a professional Malaysian letter
+          <p className="text-gray-600 mb-3">
+            Record your message and let AI transform it into a professional Malaysian formal letter
           </p>
+          <div className="inline-flex items-center gap-2 text-sm bg-green-50 text-green-800 px-3 py-2 rounded-lg border border-green-200">
+            <CheckCircle className="h-4 w-4" />
+            <span>Malaysian Formal Letter Format • Date in CAPITAL LETTERS • Professional Schema</span>
+          </div>
         </div>
 
         {/* Configuration Form */}
@@ -459,10 +463,25 @@ function LetterGeneratorPage() {
 
             {/* Generated Letter */}
             <div className="card">
-              <h3 className="text-lg font-semibold mb-3">Generated Letter</h3>
-              <div className="bg-white p-6 rounded-lg border-2 border-gray-200 font-mono text-sm whitespace-pre-wrap">
-                {result.letter}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold">Generated Letter</h3>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Malaysian Formal Format
+                </span>
               </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3">
+                <p className="text-xs text-gray-600">
+                  ✓ Markdown-style formatting • ✓ Date in capital letters • ✓ Recipient left, date right
+                </p>
+              </div>
+              <div
+                className="bg-white p-6 rounded-lg border-2 border-gray-200 text-sm prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: result.letter }}
+                style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  lineHeight: '1.6'
+                }}
+              />
             </div>
 
             {/* Action Buttons */}
