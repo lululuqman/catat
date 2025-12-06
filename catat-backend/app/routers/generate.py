@@ -7,6 +7,7 @@ from app.config import settings
 import logging
 from typing import Optional
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["generate"])
 
