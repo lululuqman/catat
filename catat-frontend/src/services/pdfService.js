@@ -43,7 +43,13 @@ class PDFService {
     doc.line(margin, y, pageWidth - margin, y)
     y += 8 // Space after line
 
-    // ===== RECIPIENT SECTION (Left-aligned) with DATE (Right-aligned on last line) =====
+    // ===== RECIPIENT NAME (Top, Left-aligned) =====
+    if (letterData.recipientName) {
+      doc.text(letterData.recipientName.trim(), margin, y)
+      y += 5
+    }
+
+    // ===== RECIPIENT ADDRESS (Left-aligned) with DATE (Right-aligned on same line) =====
     if (letterData.recipient.length > 0) {
       letterData.recipient.forEach((line, index) => {
         if (line.trim()) {
@@ -61,7 +67,7 @@ class PDFService {
       })
       y += 8 // Extra space after recipient
     } else if (letterData.date) {
-      // If no recipient but we have date, put it on right
+      // If no recipient address but we have date, put it on right
       const dateX = pageWidth - margin - doc.getTextWidth(letterData.date)
       doc.text(letterData.date, dateX, y)
       y += 10
@@ -146,6 +152,7 @@ class PDFService {
 
     const structure = {
       sender: [],
+      recipientName: '',
       recipient: [],
       date: '',
       subject: '',
@@ -212,7 +219,12 @@ class PDFService {
       } else if (currentSection === 'recipient') {
         // Recipient lines (before salutation)
         if (!foundSalutation && para.includes('[')) {
-          structure.recipient.push(para)
+          // First recipient line is the name, rest is address
+          if (!structure.recipientName) {
+            structure.recipientName = para
+          } else {
+            structure.recipient.push(para)
+          }
         } else if (!foundSalutation) {
           // Not a bracket placeholder, so it's body content
           currentSection = 'body'
