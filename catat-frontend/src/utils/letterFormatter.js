@@ -4,19 +4,19 @@
  * Supports Malaysian formal letter schema with simple HTML formatting
  *
  * Malaysian Formal Letter Structure:
- * - Sender info (left-aligned)
+ * - Sender info (each line in separate <p> tag)
  * - Horizontal separator (<hr>)
- * - Recipient info with date floated right on same line
- * - Date in CAPITAL LETTERS
+ * - Recipient info (each line in separate <p> tag)
+ * - Date (separate <p> tag, in CAPITAL LETTERS)
  * - Salutation
  * - Subject (plain text with "Subject:" or "Perkara:" prefix)
  * - Body paragraphs
- * - Closing
+ * - Closing (separate <p> tags for closing phrase and signature)
  */
 
 /**
  * Convert plain text letter to HTML with proper paragraph formatting
- * Supports Malaysian formal letter schema with floated dates
+ * Supports Malaysian formal letter schema with separate paragraphs
  * @param {string} letterText - Plain text letter content
  * @returns {string} HTML formatted letter
  */
@@ -54,7 +54,7 @@ export const formatLetterToHTML = (letterText) => {
 
 /**
  * Convert HTML to plain text for PDF export
- * Handles Malaysian formal letter format with floated dates
+ * Handles Malaysian formal letter format with separate paragraphs
  * @param {string} html - HTML content
  * @returns {string} Plain text with proper line breaks
  */
@@ -106,7 +106,6 @@ export const ensureMalaysianFormat = (content) => {
   const hasSubject = formatted.includes('Subject:') || formatted.includes('Perkara:') ||
                      formatted.includes('Re:') || formatted.includes('Rujukan:')
   const hasSalutation = formatted.includes('Dear ') || formatted.includes('Tuan') || formatted.includes('Puan')
-  const hasFloatedDate = formatted.includes('float: right') || formatted.includes('style="float')
 
   // Log warnings for missing elements (helpful for debugging)
   if (!hasSeparator) {
@@ -117,9 +116,6 @@ export const ensureMalaysianFormat = (content) => {
   }
   if (!hasSalutation) {
     console.warn('Letter may be missing salutation (Dear Sir/Madam or Tuan/Puan)')
-  }
-  if (!hasFloatedDate) {
-    console.info('Letter may be using old format (date not floated right)')
   }
 
   return formatted

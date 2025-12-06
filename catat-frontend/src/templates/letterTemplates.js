@@ -38,25 +38,22 @@ export const formatEnglishLetter = (content, metadata = {}, structuredData = {})
 
   let letter = ''
 
-  // Sender info (left-aligned)
-  letter += '<p>'
-  if (sender.name) letter += sender.name
-  if (sender.address) letter += '<br>' + sender.address
-  if (sender.contact) letter += '<br>' + sender.contact
-  letter += '</p>\n\n'
+  // Sender info - each line in separate <p> tag
+  if (sender.name) letter += `<p>${sender.name}</p>\n\n`
+  if (sender.address) letter += `<p>${sender.address}</p>\n\n`
+  if (sender.contact) letter += `<p>${sender.contact}</p>\n\n`
 
   // Horizontal separator
   letter += '<hr>\n\n'
 
-  // Recipient info + Date (recipient left, date right on same line)
-  letter += '<p>'
-  if (recipient.name) letter += recipient.name
-  if (recipient.title) letter += '<br>' + recipient.title
-  if (recipient.organization) letter += '<br>' + recipient.organization
-  if (recipient.address) letter += '<br>' + recipient.address
-  // Date floated to the right on the same line as recipient's last line
-  letter += `<span style="float: right;">${date}</span>`
-  letter += '</p>\n\n'
+  // Recipient info - each line in separate <p> tag
+  if (recipient.name) letter += `<p>${recipient.name}</p>\n\n`
+  if (recipient.title) letter += `<p>${recipient.title}</p>\n\n`
+  if (recipient.organization) letter += `<p>${recipient.organization}</p>\n\n`
+  if (recipient.address) letter += `<p>${recipient.address}</p>\n\n`
+
+  // Date in separate <p> tag
+  letter += `<p>${date}</p>\n\n`
 
   // Salutation
   letter += '<p>Dear Sir/Madam,</p>\n\n'
@@ -71,11 +68,10 @@ export const formatEnglishLetter = (content, metadata = {}, structuredData = {})
     letter += content + '\n\n'
   }
 
-  // Closing
+  // Closing - separate <p> tags
   if (!content.includes('Yours faithfully') && !content.includes('Yours sincerely')) {
-    letter += '<p>Yours faithfully,<br>'
-    letter += (sender.name || '[Your Name]')
-    letter += '</p>'
+    letter += '<p>Yours faithfully,</p>\n\n'
+    letter += `<p>${sender.name || '[Your Name]'}</p>`
   }
 
   return letter
@@ -94,25 +90,22 @@ export const formatMalayLetter = (content, metadata = {}, structuredData = {}) =
 
   let letter = ''
 
-  // Sender info (left-aligned)
-  letter += '<p>'
-  if (sender.name) letter += sender.name
-  if (sender.address) letter += '<br>' + sender.address
-  if (sender.contact) letter += '<br>' + sender.contact
-  letter += '</p>\n\n'
+  // Sender info - each line in separate <p> tag
+  if (sender.name) letter += `<p>${sender.name}</p>\n\n`
+  if (sender.address) letter += `<p>${sender.address}</p>\n\n`
+  if (sender.contact) letter += `<p>${sender.contact}</p>\n\n`
 
   // Horizontal separator
   letter += '<hr>\n\n'
 
-  // Recipient info + Date (recipient left, date right on same line)
-  letter += '<p>'
-  if (recipient.name) letter += recipient.name
-  if (recipient.title) letter += '<br>' + recipient.title
-  if (recipient.organization) letter += '<br>' + recipient.organization
-  if (recipient.address) letter += '<br>' + recipient.address
-  // Date floated to the right on the same line as recipient's last line
-  letter += `<span style="float: right;">${date}</span>`
-  letter += '</p>\n\n'
+  // Recipient info - each line in separate <p> tag
+  if (recipient.name) letter += `<p>${recipient.name}</p>\n\n`
+  if (recipient.title) letter += `<p>${recipient.title}</p>\n\n`
+  if (recipient.organization) letter += `<p>${recipient.organization}</p>\n\n`
+  if (recipient.address) letter += `<p>${recipient.address}</p>\n\n`
+
+  // Date in separate <p> tag
+  letter += `<p>${date}</p>\n\n`
 
   // Salutation
   letter += '<p>Tuan/Puan,</p>\n\n'
@@ -123,23 +116,26 @@ export const formatMalayLetter = (content, metadata = {}, structuredData = {}) =
   // Opening
   if (!content.includes('Dengan segala hormatnya')) {
     letter += '<p>Dengan segala hormatnya, '
+    // Content
+    if (content && !content.startsWith('<p>')) {
+      letter += content + '</p>\n\n'
+    } else {
+      letter += content + '\n\n'
+    }
   } else {
-    letter += '<p>'
+    // Content
+    if (content && !content.startsWith('<p>')) {
+      letter += `<p>${content}</p>\n\n`
+    } else {
+      letter += content + '\n\n'
+    }
   }
 
-  // Content
-  if (content && !content.startsWith('<p>')) {
-    letter += content + '</p>\n\n'
-  } else {
-    letter += content + '\n\n'
-  }
-
-  // Closing
+  // Closing - separate <p> tags
   if (!content.includes('Sekian, terima kasih')) {
     letter += '<p>Sekian, terima kasih.</p>\n\n'
-    letter += '<p>Yang benar,<br>'
-    letter += (sender.name || '[Nama Anda]')
-    letter += '</p>'
+    letter += '<p>Yang benar,</p>\n\n'
+    letter += `<p>${sender.name || '[Nama Anda]'}</p>`
   }
 
   return letter

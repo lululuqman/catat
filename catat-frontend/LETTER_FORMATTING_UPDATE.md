@@ -1,40 +1,47 @@
-# ✅ Malaysian Formal Letter Formatting with Markdown Style
+# ✅ Malaysian Formal Letter Formatting with Separate Paragraphs
 
 ## What Was Implemented
 
-The letter editor now generates letters using **markdown-style formatting** following the **Malaysian formal letter schema**, with proper paragraph formatting and professional layout.
+The letter editor now generates letters using **separate paragraph tags** following the **Malaysian formal letter schema**, with proper structure and professional layout optimized for PDF export.
 
 ## 🎨 Changes Made
 
 ### 1. Backend - Claude Service (`catat-backend/app/services/claude_service.py`)
 
-**Updated Claude's system prompt to generate markdown-style formatted letters:**
+**Updated Claude's system prompt to generate structured letters with separate paragraphs:**
 
 ```html
 <!-- Malaysian Formal Letter Structure -->
-<p>[Sender Name]<br>[Sender Address]<br>[Sender Contact]</p>
+<p>[Sender Name]</p>
+<p>[Sender Address]</p>
+<p>[Sender Contact]</p>
 
 <hr>
 
-<p>[Recipient Name]<br>[Recipient Title]<br>[Recipient Organization]<br>[Recipient Address]<span style="float: right;">6 DECEMBER 2025</span></p>
+<p>[Recipient Name]</p>
+<p>[Recipient Title]</p>
+<p>[Recipient Organization]</p>
+<p>[Recipient Address]</p>
+<p>6 DECEMBER 2025</p>
 
 <p>Dear Sir/Madam,</p>
 
 <p>Subject: [Subject Line]</p>
 
-<p>[Body paragraphs...]</p>
+<p>[Body paragraph 1...]</p>
+<p>[Body paragraph 2...]</p>
 
-<p>Yours faithfully,<br>[Sender Name]</p>
+<p>Yours faithfully,</p>
+<p>[Sender Name]</p>
 ```
 
 **Key features:**
-- **Simple HTML formatting** with minimal tags
-- **Sender info** left-aligned at top
-- **Horizontal line** `<hr>` between sender and recipient
-- **Recipient info** left-aligned with date on same line
-- **Date** right-aligned using `<span style="float: right;">` on recipient's last line
-- **Date in CAPITAL LETTERS** (e.g., "6 DECEMBER 2025")
+- **Separate `<p>` tags** for each line of sender/recipient info
+- **Horizontal line** `<hr>` after sender section
+- **Date in separate `<p>` tag** in CAPITAL LETTERS (e.g., "6 DECEMBER 2025")
 - **Subject** plain text with "Subject:" or "Perkara:" prefix (bold & underlined in PDF export)
+- **Optimized for PDF parsing** - pdfService.js extracts each paragraph separately
+- **Date placement in PDF** - PDF service places date on same line as last recipient address
 - Clean, professional appearance
 
 ### 2. Frontend - Letter Formatter Utility (`src/utils/letterFormatter.js`)
@@ -58,32 +65,48 @@ The letter editor now generates letters using **markdown-style formatting** foll
 
 ### 3. Frontend - PDF Service (`src/services/pdfService.js`)
 
-**Enhanced PDF rendering to handle new format:**
+**Enhanced PDF rendering with paragraph-based parsing:**
 
-- Updated date regex to recognize **CAPITAL LETTER months**
-- Added `renderParagraphWithFloat()` method to handle floated spans
-- Properly renders recipient info on left, date on right on same line
-- Supports the Malaysian formal letter schema in PDF export
+- **`parseLetterStructure()`** extracts letter components from HTML by parsing each `<p>` tag
+- **Separate recipient name** from recipient address for proper rendering
+- **Date detection** recognizes dates in CAPITAL LETTERS
+- **Smart layout** places date on same line as last recipient address in PDF
+- Each section (sender, recipient, date, subject, body) extracted separately
 
-**Key improvements:**
+**Key parsing logic:**
 ```javascript
-// Detects floated spans (date)
-const floatedSpan = element.querySelector('span[style*="float: right"]')
+// Parse each <p> tag as separate paragraph
+const paragraphs = Array.from(temp.querySelectorAll('p'))
+  .map(p => p.textContent.trim())
 
-// Renders recipient on left, date on right
-renderParagraphWithFloat(doc, element, floatedSpan, ...)
+// Extract into structured sections
+structure = {
+  sender: [],           // Array of sender lines
+  recipientName: '',    // First recipient line
+  recipient: [],        // Remaining recipient address lines
+  date: '',            // Date in capital letters
+  subject: '',         // Subject line
+  body: [],            // Body paragraphs
+  closing: '',         // Closing phrase
+  signatureName: ''    // Sender name for signature
+}
 ```
 
-**Result:** PDFs now properly show recipient info on left with date aligned right on the same line.
+**Result:** PDFs now properly parse separate paragraphs and place date on same line as last recipient address.
 
-### 4. Normalization Function
+### 4. Normalization Function & CSS
 
 **Backend normalization (`_normalize_layout`):**
-- Combines recipient and date into one paragraph
-- Adds date as floated span: `<span style="float: right;">[Date]</span>`
-- Ensures proper structure: sender → `<hr>` → (recipient + date) → body
+- Simplified to only validate `<hr>` separator exists
+- Claude AI generates correct structure with separate `<p>` tags
+- No longer needs to combine recipient and date (already separate)
 
-**Result:** Consistent letter structure across all generated letters
+**CSS Updates (`src/index.css`):**
+- **Reduced paragraph spacing** from 1em to 0.4em for tighter address lines
+- **Removed float styles** (no longer needed)
+- **Optimized for separate paragraphs** with proper spacing between sections
+
+**Result:** Consistent letter structure with proper visual spacing
 
 ## 📝 Example Output
 
@@ -120,27 +143,33 @@ Ahmad bin Abdullah
 ```
 
 ### Key Visual Features:
-✅ Sender info left-aligned
-✅ Horizontal separator line
-✅ Recipient info left-aligned
-✅ **Date right-aligned on same line as recipient address**
+✅ Each address line in separate paragraph
+✅ Horizontal separator line after sender
+✅ Recipient info with each line separate
+✅ **Date in separate paragraph, placed on same line as last address in PDF**
 ✅ **Date in CAPITAL LETTERS**
 ✅ Subject line plain text (bold & underlined in PDF)
-✅ Professional paragraph spacing
+✅ Professional paragraph spacing optimized for PDF
 
 ## 🎯 Malaysian Formal Letter Structure
 
 The formatted letter follows this structure:
 
-1. **Sender Info** (left-aligned paragraph with `<br>` between lines)
+1. **Sender Info** (each line in separate `<p>` tag)
+   - Name in one `<p>`
+   - Address in one `<p>`
+   - Contact in one `<p>`
 2. **Separator line** (`<hr>`)
-3. **Recipient Info + Date** (ONE paragraph with recipient left-aligned, date right-aligned on same line)
-   - Recipient name, title, organization, address
-   - Date as `<span style="float: right;">DD MONTH YYYY</span>`
-4. **Salutation** (one paragraph: "Dear Sir/Madam," or "Tuan/Puan,")
-5. **Subject** (one paragraph: `Subject: [Title]` - plain text, bold & underlined in PDF export)
-6. **Body paragraphs** (each in separate `<p>` tag)
-7. **Closing** (one paragraph: "Yours faithfully," with sender name)
+3. **Recipient Info** (each line in separate `<p>` tag)
+   - Recipient name in one `<p>`
+   - Title in one `<p>`
+   - Organization in one `<p>`
+   - Address in one `<p>`
+4. **Date** (separate `<p>` tag with DD MONTH YYYY in CAPITAL LETTERS)
+5. **Salutation** (one paragraph: "Dear Sir/Madam," or "Tuan/Puan,")
+6. **Subject** (one paragraph: `Subject: [Title]` - plain text, bold & underlined in PDF export)
+7. **Body paragraphs** (each in separate `<p>` tag)
+8. **Closing** (separate paragraphs: closing phrase in one `<p>`, sender name in another `<p>`)
 
 ## ✅ Testing Steps
 
@@ -184,23 +213,30 @@ uvicorn app.main:app --reload
 ### Malaysian Formal Letter Schema ✅
 
 ```
-[Sender - Left]
+[Sender Name]
+[Sender Address]
+[Sender Contact]
 _____________________________________________
-[Recipient - Left]                    [Date - Right, CAPS]
+[Recipient Name]
+[Recipient Title]
+[Recipient Organization]
+[Recipient Address]                    [Date - placed here in PDF]
+[Date in HTML - separate line]
 
 [Salutation]
-[Bold Subject]
+[Subject - plain text]
 [Body]
 [Closing]
+[Signature Name]
 ```
 
-**Key Differences from Previous Format:**
-- ✅ **Date on same line** as recipient address (not separate line)
+**Key Features:**
+- ✅ **Separate paragraphs** for each address line (no `<br>` tags)
 - ✅ **Date in CAPITAL LETTERS** (6 DECEMBER 2025)
-- ✅ **Recipient left-aligned** (not right-aligned)
-- ✅ **Simple HTML formatting** (minimal tags)
+- ✅ **Date in separate `<p>` tag** in HTML, placed on same line as last address in PDF
+- ✅ **Optimized for PDF parsing** - pdfService.js extracts each paragraph
 - ✅ **Subject line** plain in editor, bold & underlined in PDF
-- ✅ **Clean, professional appearance**
+- ✅ **Clean, professional appearance** in both editor and PDF
 
 ### Perfect For:
 - Official complaints to government agencies
@@ -237,25 +273,25 @@ Professional Malaysian formal letter! ✅
 ```
 
 ### Key Components:
-1. **Claude AI** - Generates professional content with proper formatting
-2. **Normalization** - Ensures consistent structure (recipient + date combined)
+1. **Claude AI** - Generates professional content with separate paragraphs
+2. **Normalization** - Validates structure (ensures `<hr>` separator exists)
 3. **Quill Editor** - Displays and allows editing
-4. **PDF Service** - Exports with proper layout (date floated right)
+4. **PDF Service** - Parses each paragraph and exports with proper layout
 
 ## 📚 API Response Example
 
 **Malaysian formal letter format from backend:**
 ```json
 {
-  "letter": "<p>Ahmad bin Abdullah<br>123 Jalan Tun Razak<br>012-345-6789</p>\n\n<hr>\n\n<p>Datuk Bandar DBKL<br>Dewan Bandaraya Kuala Lumpur<br>Jalan Raja Laut, 50350 KL<span style=\"float: right;\">6 DECEMBER 2025</span></p>\n\n<p>Dear Sir/Madam,</p>\n\n<p>**Subject: Complaint Regarding Road Conditions**</p>\n\n<p>I am writing to formally lodge a complaint...</p>\n\n<p>Second paragraph...</p>\n\n<p>Yours faithfully,<br>Ahmad bin Abdullah</p>"
+  "letter": "<p>Ahmad bin Abdullah</p>\n\n<p>123 Jalan Tun Razak</p>\n\n<p>012-345-6789</p>\n\n<hr>\n\n<p>Datuk Bandar DBKL</p>\n\n<p>Dewan Bandaraya Kuala Lumpur</p>\n\n<p>Jalan Raja Laut, 50350 KL</p>\n\n<p>6 DECEMBER 2025</p>\n\n<p>Dear Sir/Madam,</p>\n\n<p>Subject: Complaint Regarding Road Conditions</p>\n\n<p>I am writing to formally lodge a complaint...</p>\n\n<p>Second paragraph...</p>\n\n<p>Yours faithfully,</p>\n\n<p>Ahmad bin Abdullah</p>"
 }
 ```
 
 **Key points:**
-- Date in CAPITAL LETTERS
-- Date as floated span on same line as recipient address
-- Markdown-style bold for subject (`**text**`)
-- Clean paragraph structure
+- Each address line in separate `<p>` tag
+- Date in CAPITAL LETTERS in separate `<p>` tag
+- Plain text subject (no markdown bold)
+- Clean paragraph structure optimized for PDF parsing
 
 ## 🐛 Troubleshooting
 
@@ -309,15 +345,16 @@ Want even better formatting? You can:
 
 ## 🎉 Summary
 
-**Your letters now follow proper Malaysian formal letter schema!**
+**Your letters now follow proper Malaysian formal letter schema with optimized structure!**
 
-✅ **Simple HTML formatting** - Clean, minimal tags
-✅ **Recipient left, date right** - Professional layout
+✅ **Separate paragraph tags** - Each address line in own `<p>` tag
+✅ **Optimized for PDF parsing** - pdfService.js extracts each paragraph
 ✅ **Date in CAPITAL LETTERS** - Formal appearance (6 DECEMBER 2025)
+✅ **Smart date placement** - Separate in HTML, same line as address in PDF
 ✅ **Subject formatting** - Plain text in editor, bold & underlined in PDF
 ✅ **Proper structure** - Follows Malaysian letter standards
-✅ **PDF export works** - Subject appears bold & underlined in PDF
-✅ **Easy to edit** - Quill editor with full formatting support
+✅ **PDF export works** - Professional layout with correct date positioning
+✅ **Easy to edit** - Quill editor with optimized spacing
 
 **Ready to deploy?**
 1. Commit your changes
@@ -325,5 +362,5 @@ Want even better formatting? You can:
 3. Render will auto-deploy
 4. Test with a new letter generation
 
-**Your voice-to-formal-letter app is now production-ready!** 🚀
+**Your voice-to-formal-letter app is now production-ready with optimized PDF export!** 🚀
 
