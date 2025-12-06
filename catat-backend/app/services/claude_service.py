@@ -20,9 +20,9 @@ Generate letters in HTML format with proper paragraph tags for each section.
 ENGLISH FORMAT STRUCTURE:
 <p>[Sender Name]<br>[Address]<br>[Contact]</p>
 
-<p>[Date: DD Month YYYY]</p>
-
 <p>[Recipient Name]<br>[Title]<br>[Organization]<br>[Address]</p>
+
+<p>[Date: DD Month YYYY]</p>
 
 <p>Dear Sir/Madam,</p>
 
@@ -41,9 +41,9 @@ ENGLISH FORMAT STRUCTURE:
 MALAY FORMAT STRUCTURE:
 <p>[Nama]<br>[Alamat]<br>[Telefon]</p>
 
-<p>[Tarikh: DD Bulan YYYY]</p>
-
 <p>[Penerima]<br>[Jawatan]<br>[Organisasi]<br>[Alamat]</p>
+
+<p>[Tarikh: DD Bulan YYYY]</p>
 
 <p>Tuan/Puan,</p>
 
