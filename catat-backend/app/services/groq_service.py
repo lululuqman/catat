@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 class GroqService:
     def __init__(self):
         self.client = Groq(api_key=settings.GROQ_API_KEY)
-        self.model = "mixtral-8x7b-32768"
+        # Updated to use currently supported model
+        # Options: llama-3.3-70b-versatile, llama-3.1-70b-versatile, llama-3.1-8b-instant
+        self.model = "llama-3.3-70b-versatile"
     
     def _build_system_prompt(self) -> str:
         return """You are a Malaysian document analyzer. Extract structured data from speech transcripts.
@@ -46,7 +48,7 @@ Transcript: {transcript}
 Extract structured data in JSON format."""
 
         try:
-            logger.info(f"⚙️ Structuring with Groq Mixtral")
+            logger.info(f"⚙️ Structuring with Groq {self.model}")
             
             completion = self.client.chat.completions.create(
                 model=self.model,
