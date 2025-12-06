@@ -32,14 +32,12 @@ class PDFService {
     const htmlDoc = parser.parseFromString(letterContent, 'text/html')
     const body = htmlDoc.body
 
-    const anchors = {}
-
     /**
      * Normalize common official-letter structure without changing content
      * - Inserts a separator line after sender block
      * - Right-aligns detected dates
      * - Underlines detected subject/title lines
-     * - Marks date to align with recipient's last line when possible
+     * - Moves date below separator (recipient section)
      */
     const enhanceLetterStructure = (bodyEl) => {
       if (!bodyEl) return
@@ -65,17 +63,12 @@ class PDFService {
       }
 
       // 1) Right-align date if detected and not already aligned
-      paragraphs.forEach((p, idx) => {
+      let datePara = null
+      paragraphs.forEach((p) => {
         const text = normalizeText(p.textContent)
         if (dateRegex.test(text)) {
           addAlignmentIfMissing(p, 'right')
-
-          // Mark this date to align with previous paragraph (recipient last line) if available
-          const anchorPara = paragraphs[idx - 1]
-          if (anchorPara) {
-            anchorPara.setAttribute('data-anchor', 'recipient-end')
-            p.setAttribute('data-align-with', 'recipient-end')
-          }
+          datePara = p
         }
       })
 
@@ -93,7 +86,8 @@ class PDFService {
       }
 
       // 3) Insert a separator line after sender block (before recipient/date/salutation) if none exists
-      if (!bodyEl.querySelector('hr')) {
+      let hrEl = bodyEl.querySelector('hr')
+      if (!hrEl) {
         const recipientIdx = paragraphs.findIndex(p => /^(to|kepada|the\s)/i.test(normalizeText(p.textContent)))
         const salutationIdx = paragraphs.findIndex(p => /(dear\s|tuan|puan|sir\/madam)/i.test(normalizeText(p.textContent)))
         const dateIdx = paragraphs.findIndex(p => dateRegex.test(normalizeText(p.textContent)))
@@ -104,6 +98,15 @@ class PDFService {
           const hr = htmlDoc.createElement('hr')
           const targetPara = paragraphs[insertBeforeIdx]
           bodyEl.insertBefore(hr, targetPara)
+          hrEl = hr
+        }
+      }
+
+      // 4) Ensure date appears below the separator (recipient section)
+      if (datePara && hrEl) {
+        // Move date paragraph to immediately after the hr
+        if (datePara.previousSibling !== hrEl) {
+          bodyEl.insertBefore(datePara, hrEl.nextSibling)
         }
       }
     }
@@ -140,13 +143,7 @@ class PDFService {
 
       // PARAGRAPH <p>
       if (tagName === 'p') {
-        // If this paragraph should align with a stored anchor (e.g., date with recipient line)
-        const alignWith = element.getAttribute('data-align-with')
-        if (alignWith && anchors[alignWith] !== undefined) {
-          yPos = anchors[alignWith]
-        } else {
-          yPos = checkPageBreak()
-        }
+        yPos = checkPageBreak()
 
         // Get all text content from paragraph (including formatted text)
         let paragraphText = ''
@@ -185,12 +182,6 @@ class PDFService {
           // Process text with formatting
           yPos = this.renderFormattedParagraph(doc, element, yPos, margin, maxWidth, pageWidth, lineHeight, align)
           
-          // Store anchor after rendering if this paragraph provides one
-          const anchorName = element.getAttribute('data-anchor')
-          if (anchorName) {
-            anchors[anchorName] = yPos
-          }
-
           // Add paragraph spacing after content
           yPos += paragraphSpacing
         } else {
