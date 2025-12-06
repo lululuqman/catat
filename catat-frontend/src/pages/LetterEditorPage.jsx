@@ -310,7 +310,7 @@ function LetterEditorPage() {
             <li><strong>Malaysian Formal Schema:</strong> Follows official letter standards</li>
             <li><strong>Recipient left, Date right:</strong> Date appears on same line as recipient address</li>
             <li><strong>Capital letters:</strong> Date in CAPITAL LETTERS (e.g., 6 DECEMBER 2025)</li>
-            <li><strong>Markdown style:</strong> Clean formatting with **bold** for subjects</li>
+            <li><strong>Subject line:</strong> Plain text in editor, bold & underlined in PDF export</li>
           </ul>
           <h3 className="font-semibold text-gray-900 mb-2 mt-4">📝 Editing Tips:</h3>
           <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">

@@ -1,7 +1,7 @@
 /**
  * Letter Formatting Utilities
  * Converts plain text letters to properly formatted HTML for Quill editor
- * Supports Malaysian formal letter schema with markdown-style formatting
+ * Supports Malaysian formal letter schema with simple HTML formatting
  *
  * Malaysian Formal Letter Structure:
  * - Sender info (left-aligned)
@@ -9,7 +9,7 @@
  * - Recipient info with date floated right on same line
  * - Date in CAPITAL LETTERS
  * - Salutation
- * - Subject (markdown-style bold with **)
+ * - Subject (plain text with "Subject:" or "Perkara:" prefix)
  * - Body paragraphs
  * - Closing
  */
@@ -104,8 +104,7 @@ export const ensureMalaysianFormat = (content) => {
   // Check if it has the Malaysian formal letter structure
   const hasSeparator = formatted.includes('<hr>') || formatted.includes('---')
   const hasSubject = formatted.includes('Subject:') || formatted.includes('Perkara:') ||
-                     formatted.includes('Re:') || formatted.includes('Rujukan:') ||
-                     formatted.includes('**Subject') || formatted.includes('**Perkara')
+                     formatted.includes('Re:') || formatted.includes('Rujukan:')
   const hasSalutation = formatted.includes('Dear ') || formatted.includes('Tuan') || formatted.includes('Puan')
   const hasFloatedDate = formatted.includes('float: right') || formatted.includes('style="float')
 
@@ -139,11 +138,11 @@ export const addLetterSpacing = (html) => {
   // Ensure spacing after <hr> separator
   spaced = spaced.replace(/<hr>\s*/gi, '<hr>\n\n')
 
-  // Ensure spacing after subject line (markdown or HTML)
-  spaced = spaced.replace(/(\*\*Subject:.*?\*\*<\/p>)/gi, '$1\n\n')
-  spaced = spaced.replace(/(\*\*Perkara:.*?\*\*<\/p>)/gi, '$1\n\n')
-  spaced = spaced.replace(/(Re:.*?<\/strong><\/p>)/gi, '$1\n\n')
-  spaced = spaced.replace(/(Rujukan:.*?<\/strong><\/p>)/gi, '$1\n\n')
+  // Ensure spacing after subject line (plain text format)
+  spaced = spaced.replace(/(Subject:.*?<\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(Perkara:.*?<\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(Re:.*?<\/p>)/gi, '$1\n\n')
+  spaced = spaced.replace(/(Rujukan:.*?<\/p>)/gi, '$1\n\n')
 
   // Clean up excessive spacing
   spaced = spaced.replace(/\n{3,}/g, '\n\n')

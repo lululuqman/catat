@@ -471,7 +471,7 @@ function LetterGeneratorPage() {
               </div>
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3">
                 <p className="text-xs text-gray-600">
-                  ✓ Markdown-style formatting • ✓ Date in capital letters • ✓ Recipient left, date right
+                  ✓ Simple HTML formatting • ✓ Date in capital letters • ✓ Recipient left, date right • ✓ Subject with bold/underline in PDF
                 </p>
               </div>
               <div

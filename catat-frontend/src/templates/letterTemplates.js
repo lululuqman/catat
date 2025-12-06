@@ -1,7 +1,8 @@
 /**
  * Malaysian Letter Templates
  * Formats letters according to Malaysian formal letter standards
- * Uses markdown-style HTML formatting with date in CAPITAL LETTERS
+ * Uses simple HTML formatting with date in CAPITAL LETTERS
+ * Subject line is plain text (no bold formatting)
  */
 
 /**
@@ -26,7 +27,7 @@ export const formatMalaysianDate = (date = new Date(), language = 'en') => {
 
 /**
  * Format English Letter with Malaysian Formal Schema
- * Returns HTML with markdown-style formatting
+ * Returns HTML with simple formatting (subject line is plain text)
  */
 export const formatEnglishLetter = (content, metadata = {}, structuredData = {}) => {
   const date = formatMalaysianDate(new Date(), 'en')
@@ -60,8 +61,8 @@ export const formatEnglishLetter = (content, metadata = {}, structuredData = {})
   // Salutation
   letter += '<p>Dear Sir/Madam,</p>\n\n'
 
-  // Subject (markdown-style bold)
-  letter += `<p>**Subject: ${subject}**</p>\n\n`
+  // Subject (plain text with prefix)
+  letter += `<p>Subject: ${subject}</p>\n\n`
 
   // Content (wrap in paragraph if needed)
   if (content && !content.startsWith('<p>')) {
@@ -82,7 +83,7 @@ export const formatEnglishLetter = (content, metadata = {}, structuredData = {})
 
 /**
  * Format Malay Letter with Malaysian Formal Schema
- * Returns HTML with markdown-style formatting
+ * Returns HTML with simple formatting (subject line is plain text)
  */
 export const formatMalayLetter = (content, metadata = {}, structuredData = {}) => {
   const date = formatMalaysianDate(new Date(), 'ms')
@@ -116,8 +117,8 @@ export const formatMalayLetter = (content, metadata = {}, structuredData = {}) =
   // Salutation
   letter += '<p>Tuan/Puan,</p>\n\n'
 
-  // Subject (markdown-style bold)
-  letter += `<p>**Perkara: ${subject}**</p>\n\n`
+  // Subject (plain text with prefix)
+  letter += `<p>Perkara: ${subject}</p>\n\n`
 
   // Opening
   if (!content.includes('Dengan segala hormatnya')) {
@@ -145,7 +146,7 @@ export const formatMalayLetter = (content, metadata = {}, structuredData = {}) =
 }
 
 /**
- * Main function to format Malaysian letter with HTML and markdown-style formatting
+ * Main function to format Malaysian letter with HTML formatting
  * @param {string} content - Letter content from AI
  * @param {object} metadata - Letter metadata
  * @param {string} language - 'en', 'ms', or 'mixed'

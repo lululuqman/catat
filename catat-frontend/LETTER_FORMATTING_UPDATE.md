@@ -20,7 +20,7 @@ The letter editor now generates letters using **markdown-style formatting** foll
 
 <p>Dear Sir/Madam,</p>
 
-<p>**Subject: [Subject Line]**</p>
+<p>Subject: [Subject Line]</p>
 
 <p>[Body paragraphs...]</p>
 
@@ -28,13 +28,13 @@ The letter editor now generates letters using **markdown-style formatting** foll
 ```
 
 **Key features:**
-- **Markdown-style formatting** with minimal HTML tags
+- **Simple HTML formatting** with minimal tags
 - **Sender info** left-aligned at top
 - **Horizontal line** `<hr>` between sender and recipient
 - **Recipient info** left-aligned with date on same line
 - **Date** right-aligned using `<span style="float: right;">` on recipient's last line
 - **Date in CAPITAL LETTERS** (e.g., "6 DECEMBER 2025")
-- **Subject** uses `**text**` for markdown-style bold
+- **Subject** plain text with "Subject:" or "Perkara:" prefix (bold & underlined in PDF export)
 - Clean, professional appearance
 
 ### 2. Frontend - Letter Formatter Utility (`src/utils/letterFormatter.js`)
@@ -101,7 +101,7 @@ Jalan Raja Laut, 50350 KL                              6 DECEMBER 2025
 
 Dear Sir/Madam,
 
-**Subject: Complaint Regarding Poor Municipal Services**
+Subject: Complaint Regarding Poor Municipal Services
 
 I am writing to formally lodge a complaint regarding the deteriorating
 municipal services in our area.
@@ -125,7 +125,7 @@ Ahmad bin Abdullah
 ✅ Recipient info left-aligned
 ✅ **Date right-aligned on same line as recipient address**
 ✅ **Date in CAPITAL LETTERS**
-✅ Clean markdown-style subject line
+✅ Subject line plain text (bold & underlined in PDF)
 ✅ Professional paragraph spacing
 
 ## 🎯 Malaysian Formal Letter Structure
@@ -138,7 +138,7 @@ The formatted letter follows this structure:
    - Recipient name, title, organization, address
    - Date as `<span style="float: right;">DD MONTH YYYY</span>`
 4. **Salutation** (one paragraph: "Dear Sir/Madam," or "Tuan/Puan,")
-5. **Subject** (one paragraph with markdown bold: `**Subject: [Title]**`)
+5. **Subject** (one paragraph: `Subject: [Title]` - plain text, bold & underlined in PDF export)
 6. **Body paragraphs** (each in separate `<p>` tag)
 7. **Closing** (one paragraph: "Yours faithfully," with sender name)
 
@@ -198,7 +198,8 @@ _____________________________________________
 - ✅ **Date on same line** as recipient address (not separate line)
 - ✅ **Date in CAPITAL LETTERS** (6 DECEMBER 2025)
 - ✅ **Recipient left-aligned** (not right-aligned)
-- ✅ **Markdown-style formatting** (minimal HTML)
+- ✅ **Simple HTML formatting** (minimal tags)
+- ✅ **Subject line** plain in editor, bold & underlined in PDF
 - ✅ **Clean, professional appearance**
 
 ### Perfect For:
@@ -310,11 +311,12 @@ Want even better formatting? You can:
 
 **Your letters now follow proper Malaysian formal letter schema!**
 
-✅ **Markdown-style formatting** - Clean, minimal HTML
+✅ **Simple HTML formatting** - Clean, minimal tags
 ✅ **Recipient left, date right** - Professional layout
 ✅ **Date in CAPITAL LETTERS** - Formal appearance (6 DECEMBER 2025)
+✅ **Subject formatting** - Plain text in editor, bold & underlined in PDF
 ✅ **Proper structure** - Follows Malaysian letter standards
-✅ **PDF export works** - Maintains formatting in exported PDFs
+✅ **PDF export works** - Subject appears bold & underlined in PDF
 ✅ **Easy to edit** - Quill editor with full formatting support
 
 **Ready to deploy?**

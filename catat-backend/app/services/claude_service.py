@@ -30,7 +30,7 @@ ENGLISH FORMAT:
 
 <p>Dear Sir/Madam,</p>
 
-<p>**Subject: [Subject Line]**</p>
+<p>Subject: [Subject Line]</p>
 
 <p>[Opening paragraph with formal introduction]</p>
 
@@ -51,7 +51,7 @@ MALAY FORMAT:
 
 <p>Tuan/Puan,</p>
 
-<p>**Perkara: [Tajuk Surat]**</p>
+<p>Perkara: [Tajuk Surat]</p>
 
 <p>Dengan segala hormatnya, [opening paragraph]</p>
 
@@ -71,7 +71,7 @@ CRITICAL FORMATTING RULES:
    - Date on SAME LINE as recipient's last line (address) using <span style="float: right;">
    - Date format: "DD MONTH YYYY" in CAPITAL LETTERS (e.g., "6 DECEMBER 2025")
    - Example: <p>[Recipient]<br>[Address]<span style="float: right;">6 DECEMBER 2025</span></p>
-4. **Subject**: Use **text** for markdown-style bold
+4. **Subject**: Plain text with "Subject:" or "Perkara:" prefix (no bold formatting)
 5. **Body**: Each paragraph in separate <p> tag, natural spacing
 6. **Closing**: Left-aligned, sender name with <br> for signature space
 
@@ -114,7 +114,7 @@ CRITICAL FORMATTING REQUIREMENTS:
    - Date on SAME LINE as last recipient line using: <span style="float: right;">[Date]</span>
    - Date in CAPITAL LETTERS: "DD MONTH YYYY" (e.g., "6 DECEMBER 2025")
    - Example: <p>[Name]<br>[Title]<br>[Org]<br>[Address]<span style="float: right;">6 DECEMBER 2025</span></p>
-5. Use **text** for subject line (markdown-style bold)
+5. Use plain "Subject: [text]" or "Perkara: [text]" without bold formatting
 6. Each body paragraph in separate <p> tags
 7. Natural, professional tone throughout
 
