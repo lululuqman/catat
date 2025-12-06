@@ -190,20 +190,31 @@ class PDFService {
 
       // Route to appropriate section
       if (currentSection === 'sender') {
-        // First few lines are sender (until we hit longer text or recipient indicators)
-        if (para.length < 80 || para.includes('[')) {
+        // Only add to sender if it contains bracket placeholders OR is very short (name/address format)
+        // AND we haven't collected too many sender lines yet
+        if (para.includes('[') && structure.sender.length < 3) {
+          structure.sender.push(para)
+        } else if (!para.includes('[') && para.length < 50 && structure.sender.length < 3) {
           structure.sender.push(para)
         } else {
           // Switch to recipient
           currentSection = 'recipient'
-          structure.recipient.push(para)
+          // Check if this line is recipient or should go elsewhere
+          if (para.includes('[')) {
+            structure.recipient.push(para)
+          } else {
+            // This is likely body content that appears before recipient
+            // Hold it temporarily and add after we find the structure
+            currentSection = 'body'
+            structure.body.push(para)
+          }
         }
       } else if (currentSection === 'recipient') {
         // Recipient lines (before salutation)
-        if (!foundSalutation && (para.length < 80 || para.includes('['))) {
+        if (!foundSalutation && para.includes('[')) {
           structure.recipient.push(para)
         } else if (!foundSalutation) {
-          // Long text before salutation might be first body paragraph
+          // Not a bracket placeholder, so it's body content
           currentSection = 'body'
           structure.body.push(para)
         }
