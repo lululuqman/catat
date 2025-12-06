@@ -86,12 +86,12 @@ class PDFService {
       }
 
       // 3) Insert a separator line after sender block (before recipient/date/salutation) if none exists
+      const recipientIdx = paragraphs.findIndex(p => /^(to|kepada|the\s)/i.test(normalizeText(p.textContent)))
+      const salutationIdx = paragraphs.findIndex(p => /(dear\s|tuan|puan|sir\/madam)/i.test(normalizeText(p.textContent)))
+      const dateIdx = paragraphs.findIndex(p => dateRegex.test(normalizeText(p.textContent)))
+
       let hrEl = bodyEl.querySelector('hr')
       if (!hrEl) {
-        const recipientIdx = paragraphs.findIndex(p => /^(to|kepada|the\s)/i.test(normalizeText(p.textContent)))
-        const salutationIdx = paragraphs.findIndex(p => /(dear\s|tuan|puan|sir\/madam)/i.test(normalizeText(p.textContent)))
-        const dateIdx = paragraphs.findIndex(p => dateRegex.test(normalizeText(p.textContent)))
-
         const candidates = [recipientIdx, dateIdx, salutationIdx].filter(i => i > 0)
         if (candidates.length) {
           const insertBeforeIdx = Math.min(...candidates)
@@ -102,11 +102,17 @@ class PDFService {
         }
       }
 
-      // 4) Ensure date appears below the separator (recipient section)
+      // 4) Ensure date appears in recipient section, after recipient block (or after hr if no recipient)
       if (datePara && hrEl) {
-        // Move date paragraph to immediately after the hr
-        if (datePara.previousSibling !== hrEl) {
-          bodyEl.insertBefore(datePara, hrEl.nextSibling)
+        const recipientPara = recipientIdx >= 0 ? paragraphs[recipientIdx] : null
+        const targetNode = recipientPara && recipientPara.parentNode === bodyEl
+          ? recipientPara.nextSibling
+          : hrEl.nextSibling
+
+        if (targetNode !== datePara && datePara.parentNode === bodyEl) {
+          bodyEl.insertBefore(datePara, targetNode)
+        } else if (datePara.parentNode !== bodyEl) {
+          bodyEl.insertBefore(datePara, targetNode)
         }
       }
     }

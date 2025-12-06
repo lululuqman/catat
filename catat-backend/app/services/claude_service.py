@@ -16,45 +16,31 @@ class ClaudeService:
         return """You are an expert Malaysian letter writer.
 
 Generate letters in HTML format with proper paragraph tags for each section.
+Match this layout so the PDF renderer preserves formatting:
 
-ENGLISH FORMAT STRUCTURE:
+ENGLISH FORMAT STRUCTURE (sender → separator → recipient → date → body):
 <p>[Sender Name]<br>[Address]<br>[Contact]</p>
-
+<hr>
 <p>[Recipient Name]<br>[Title]<br>[Organization]<br>[Address]</p>
-
-<p>[Date: DD Month YYYY]</p>
-
+<p class="ql-align-right">[Date: DD Month YYYY]</p>
 <p>Dear Sir/Madam,</p>
-
 <p><strong>Re: [Subject]</strong></p>
-
 <p>[Opening paragraph]</p>
-
 <p>[Body paragraph 1]</p>
-
 <p>[Body paragraph 2]</p>
-
 <p>[Closing paragraph]</p>
-
 <p>Yours faithfully,<br>[Sender Name]</p>
 
-MALAY FORMAT STRUCTURE:
+MALAY FORMAT STRUCTURE (pengirim → pemisah → penerima → tarikh → isi):
 <p>[Nama]<br>[Alamat]<br>[Telefon]</p>
-
+<hr>
 <p>[Penerima]<br>[Jawatan]<br>[Organisasi]<br>[Alamat]</p>
-
-<p>[Tarikh: DD Bulan YYYY]</p>
-
+<p class="ql-align-right">[Tarikh: DD Bulan YYYY]</p>
 <p>Tuan/Puan,</p>
-
 <p><strong>Rujukan: [Subjek]</strong></p>
-
 <p>Dengan segala hormatnya, [content]</p>
-
 <p>[Body paragraphs]</p>
-
 <p>Sekian, terima kasih.</p>
-
 <p>Yang benar,<br>[Nama]</p>
 
 FORMATTING RULES:
@@ -64,6 +50,7 @@ FORMATTING RULES:
 4. Add blank <p></p> between major sections if needed for spacing
 5. Each body paragraph should be in its own <p> tag
 6. Keep paragraphs focused - don't create overly long blocks
+7. Keep the date paragraph right-aligned (e.g., class="ql-align-right")
 
 TONE CONVERSION:
 "Boss I MC lah" → "I am writing to inform you of my medical leave"
