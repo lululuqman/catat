@@ -16,49 +16,76 @@ class ClaudeService:
     def _build_system_prompt(self) -> str:
         return """You are an expert Malaysian letter writer.
 
-Generate letters in HTML format with proper paragraph tags for each section.
-Match this layout so the PDF renderer preserves formatting:
+Generate letters using MARKDOWN-STYLE FORMATTING following Malaysian formal letter schema.
+Use minimal HTML tags ONLY for structure and alignment.
 
-ENGLISH FORMAT STRUCTURE (sender → separator → recipient → date → body):
-<p>[Sender Name]<br>[Address]<br>[Contact]</p>
+MALAYSIAN FORMAL LETTER STRUCTURE:
+
+ENGLISH FORMAT:
+<p>[Sender Name]<br>[Sender Address]<br>[Sender Phone/Email]</p>
+
 <hr>
-<p>[Recipient Name]<br>[Title]<br>[Organization]<br>[Address]</p>
-<p class="ql-align-right">[Date: DD Month YYYY]</p>
+
+<p>[Recipient Name]<br>[Recipient Title]<br>[Recipient Organization]<br>[Recipient Address]<span style="float: right;">DD MONTH YYYY</span></p>
+
 <p>Dear Sir/Madam,</p>
-<p><strong>Re: [Subject]</strong></p>
-<p>[Opening paragraph]</p>
-<p>[Body paragraph 1]</p>
-<p>[Body paragraph 2]</p>
-<p>[Closing paragraph]</p>
+
+<p>**Subject: [Subject Line]**</p>
+
+<p>[Opening paragraph with formal introduction]</p>
+
+<p>[Body paragraph 1 - main points]</p>
+
+<p>[Body paragraph 2 - additional details]</p>
+
+<p>[Closing paragraph with call to action or thanks]</p>
+
 <p>Yours faithfully,<br>[Sender Name]</p>
 
-MALAY FORMAT STRUCTURE (pengirim → pemisah → penerima → tarikh → isi):
-<p>[Nama]<br>[Alamat]<br>[Telefon]</p>
-<hr>
-<p>[Penerima]<br>[Jawatan]<br>[Organisasi]<br>[Alamat]</p>
-<p class="ql-align-right">[Tarikh: DD Bulan YYYY]</p>
-<p>Tuan/Puan,</p>
-<p><strong>Rujukan: [Subjek]</strong></p>
-<p>Dengan segala hormatnya, [content]</p>
-<p>[Body paragraphs]</p>
-<p>Sekian, terima kasih.</p>
-<p>Yang benar,<br>[Nama]</p>
+MALAY FORMAT:
+<p>[Nama Pengirim]<br>[Alamat Pengirim]<br>[Telefon/Email]</p>
 
-FORMATTING RULES:
-1. Use <p> tags for each section/paragraph
-2. Use <br> for line breaks within same section (e.g., address lines)
-3. Use <strong> for subject line
-4. Add blank <p></p> between major sections if needed for spacing
-5. Each body paragraph should be in its own <p> tag
-6. Keep paragraphs focused - don't create overly long blocks
-7. Keep the date paragraph right-aligned (e.g., class="ql-align-right")
+<hr>
+
+<p>[Nama Penerima]<br>[Jawatan Penerima]<br>[Organisasi]<br>[Alamat Penerima]<span style="float: right;">DD BULAN YYYY</span></p>
+
+<p>Tuan/Puan,</p>
+
+<p>**Perkara: [Tajuk Surat]**</p>
+
+<p>Dengan segala hormatnya, [opening paragraph]</p>
+
+<p>[Isi kandungan perenggan 1]</p>
+
+<p>[Isi kandungan perenggan 2]</p>
+
+<p>Sekian, terima kasih.</p>
+
+<p>Yang benar,<br>[Nama Pengirim]</p>
+
+CRITICAL FORMATTING RULES:
+1. **Sender info**: Left-aligned at top, separate lines with <br>
+2. **Horizontal line**: <hr> placed between sender's last line and recipient's first line
+3. **Recipient + Date**: COMBINED in ONE paragraph
+   - Recipient info (name, title, organization, address) LEFT-ALIGNED with <br> between lines
+   - Date on SAME LINE as recipient's last line (address) using <span style="float: right;">
+   - Date format: "DD MONTH YYYY" in CAPITAL LETTERS (e.g., "6 DECEMBER 2025")
+   - Example: <p>[Recipient]<br>[Address]<span style="float: right;">6 DECEMBER 2025</span></p>
+4. **Subject**: Use **text** for markdown-style bold
+5. **Body**: Each paragraph in separate <p> tag, natural spacing
+6. **Closing**: Left-aligned, sender name with <br> for signature space
+
+DATE FORMAT EXAMPLES:
+- English: "6 DECEMBER 2025" (CAPITAL LETTERS, full month name, no leading zero)
+- Malay: "6 DISEMBER 2025" (HURUF BESAR, bulan penuh, tanpa sifar di hadapan)
 
 TONE CONVERSION:
-"Boss I MC lah" → "I am writing to inform you of my medical leave"
+- Casual → Formal and professional
+- "Boss I MC lah" → "I am writing to formally inform you that I require medical leave"
 
 Use [SENDER_NAME], [DATE] if info missing.
 
-Output ONLY the formatted HTML letter, no additional text."""
+Output ONLY the formatted HTML letter, no additional text or explanations."""
 
     async def generate_letter(
         self,
@@ -78,12 +105,18 @@ Structured Data:
 Key Points:
 {self._format_key_points(structured_data.key_points)}
 
-IMPORTANT: 
-- Format the letter with proper HTML paragraph tags (<p>...</p>)
-- Use <br> for line breaks within sections (like addresses)
-- Use <strong> for the subject line
-- Each body paragraph should be separate <p> tags
-- Make the content flow naturally with proper paragraph breaks
+CRITICAL FORMATTING REQUIREMENTS:
+1. Follow Malaysian formal letter schema exactly as shown in system prompt
+2. Sender info at top (left-aligned), each line separated by <br>
+3. Horizontal line <hr> after sender
+4. Recipient AND date in ONE paragraph:
+   - Recipient info LEFT-ALIGNED (name, title, organization, address) with <br> between lines
+   - Date on SAME LINE as last recipient line using: <span style="float: right;">[Date]</span>
+   - Date in CAPITAL LETTERS: "DD MONTH YYYY" (e.g., "6 DECEMBER 2025")
+   - Example: <p>[Name]<br>[Title]<br>[Org]<br>[Address]<span style="float: right;">6 DECEMBER 2025</span></p>
+5. Use **text** for subject line (markdown-style bold)
+6. Each body paragraph in separate <p> tags
+7. Natural, professional tone throughout
 
 Generate the complete formatted letter now."""
 
@@ -120,8 +153,8 @@ Generate the complete formatted letter now."""
 
     def _normalize_layout(self, html: str) -> str:
         """
-        Ensure layout order: sender -> <hr> -> recipient -> date -> rest.
-        Right-align date paragraph if missing alignment class.
+        Ensure Malaysian letter layout: sender -> <hr> -> (recipient left + date right on same line) -> rest.
+        Combines recipient and date into one paragraph with date as floated span.
         """
         try:
             blocks = re.findall(r"<p[^>]*>.*?</p>", html, flags=re.IGNORECASE | re.DOTALL)
@@ -129,51 +162,74 @@ Generate the complete formatted letter now."""
                 return html
 
             def is_date(block: str) -> bool:
-                date_re = re.compile(r"\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)", re.IGNORECASE)
+                date_re = re.compile(r"\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Dis|Januari|Februari|Mac|April|Mei|Jun|Julai|Ogos|September|Oktober|November|Disember)", re.IGNORECASE)
                 return "[date]" in block.lower() or bool(date_re.search(block))
 
             def is_salutation(block: str) -> bool:
                 return re.search(r"dear\s|tuan|puan|sir/madam", block, re.IGNORECASE) is not None
 
             def is_subject(block: str) -> bool:
-                return re.search(r"<strong>\s*(re:|rujukan:|subject:|perkara:)", block, re.IGNORECASE) is not None
+                return re.search(r"(\*\*subject|\*\*perkara|<strong>\s*(re:|rujukan:|subject:|perkara:))", block, re.IGNORECASE) is not None
 
-            date_idx = next((i for i, b in enumerate(blocks) if is_date(b)), -1)
-            recipient_idx = next(
-                (
-                    i
-                    for i, b in enumerate(blocks[1:], start=1)
-                    if i != date_idx and not is_salutation(b) and not is_subject(b)
-                ),
-                -1,
-            )
+            def is_recipient(block: str) -> bool:
+                # Recipient block usually appears after sender and before salutation
+                # It's not a date, salutation, or subject
+                return not is_date(block) and not is_salutation(block) and not is_subject(block)
 
+            # Find key blocks
             sender_block = blocks[0]
+            date_idx = next((i for i, b in enumerate(blocks) if is_date(b)), -1)
             date_block = blocks[date_idx] if date_idx != -1 else None
+
+            # Find recipient block (typically second block after sender, before salutation)
+            recipient_idx = -1
+            for i, b in enumerate(blocks[1:], start=1):
+                if is_recipient(b) and i != date_idx:
+                    recipient_idx = i
+                    break
             recipient_block = blocks[recipient_idx] if recipient_idx != -1 else None
 
-            # Align date paragraph
-            if date_block:
-                if 'class="' not in date_block:
-                    date_block = date_block.replace("<p", '<p class="ql-align-right"', 1)
-                elif "ql-align-right" not in date_block:
-                    date_block = date_block.replace('class="', 'class="ql-align-right ', 1)
+            # Extract content from recipient and date blocks
+            def extract_content(block: str) -> str:
+                """Extract inner HTML content from <p> tag"""
+                match = re.search(r"<p[^>]*>(.*?)</p>", block, re.IGNORECASE | re.DOTALL)
+                return match.group(1).strip() if match else ""
+
+            # Combine recipient and date into one paragraph with date as floated span
+            combined_recipient_date = None
+            if recipient_block or date_block:
+                recipient_content = extract_content(recipient_block) if recipient_block else ""
+                date_content = extract_content(date_block) if date_block else ""
+
+                # Remove any existing float spans or alignment classes from date content
+                date_content = re.sub(r'<span[^>]*style="float:\s*right;"[^>]*>(.*?)</span>', r'\1', date_content, flags=re.IGNORECASE)
+                date_content = date_content.strip()
+
+                # Combine: recipient info left-aligned, date as floated span on same line as last recipient line
+                if recipient_content and date_content:
+                    combined_content = f'{recipient_content}<span style="float: right;">{date_content}</span>'
+                elif recipient_content:
+                    combined_content = recipient_content
+                elif date_content:
+                    combined_content = f'<span style="float: right;">{date_content}</span>'
+                else:
+                    combined_content = None
+
+                if combined_content:
+                    combined_recipient_date = f'<p>{combined_content}</p>'
 
             # Rebuild ordered blocks
             new_blocks = []
             new_blocks.append(sender_block)
             new_blocks.append("<hr>")
-            if recipient_block:
-                new_blocks.append(recipient_block)
-            if date_block:
-                new_blocks.append(date_block)
+            if combined_recipient_date:
+                new_blocks.append(combined_recipient_date)
 
-            # Append remaining blocks in original order, skipping ones already placed
-            used = {sender_block, recipient_block, date_block}
-            for b in blocks[1:]:
-                if b in used:
-                    continue
-                new_blocks.append(b)
+            # Append remaining blocks in original order, skipping already used ones
+            used_indices = {0, recipient_idx, date_idx}
+            for i, b in enumerate(blocks):
+                if i not in used_indices:
+                    new_blocks.append(b)
 
             return "\n\n".join(new_blocks)
         except Exception as exc:
