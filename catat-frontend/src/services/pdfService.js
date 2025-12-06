@@ -43,7 +43,7 @@ class PDFService {
     doc.line(margin, y, pageWidth - margin, y)
     y += 8 // Space after line
 
-    // ===== RECIPIENT SECTION =====
+    // ===== RECIPIENT SECTION (Left-aligned) with DATE (Right-aligned on last line) =====
     if (letterData.recipient.length > 0) {
       letterData.recipient.forEach((line, index) => {
         if (line.trim()) {
