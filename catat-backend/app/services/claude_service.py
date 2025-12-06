@@ -124,7 +124,6 @@ Generate the complete formatted letter now."""
         Right-align date paragraph if missing alignment class.
         """
         try:
-            # Extract paragraph blocks
             blocks = re.findall(r"<p[^>]*>.*?</p>", html, flags=re.IGNORECASE | re.DOTALL)
             if not blocks:
                 return html
@@ -134,12 +133,11 @@ Generate the complete formatted letter now."""
                 return "[date]" in block.lower() or bool(date_re.search(block))
 
             def is_salutation(block: str) -> bool:
-                return re.search(r"dear\s|tuan/p uan|sir/madam", block, re.IGNORECASE) is not None
+                return re.search(r"dear\s|tuan|puan|sir/madam", block, re.IGNORECASE) is not None
 
             def is_subject(block: str) -> bool:
                 return re.search(r"<strong>\s*(re:|rujukan:|subject:|perkara:)", block, re.IGNORECASE) is not None
 
-            sender_idx = 0
             date_idx = next((i for i, b in enumerate(blocks) if is_date(b)), -1)
             recipient_idx = next(
                 (
@@ -150,27 +148,34 @@ Generate the complete formatted letter now."""
                 -1,
             )
 
-            # Move date after recipient if it appears before
-            if date_idx != -1 and recipient_idx != -1 and date_idx < recipient_idx:
-                date_block = blocks.pop(date_idx)
-                insert_at = recipient_idx  # after recipient once pop shifts left
-                blocks.insert(insert_at + 1, date_block)
+            sender_block = blocks[0]
+            date_block = blocks[date_idx] if date_idx != -1 else None
+            recipient_block = blocks[recipient_idx] if recipient_idx != -1 else None
 
-            # Inject <hr> after sender if missing
-            if "<hr" not in html.lower():
-                blocks.insert(sender_idx + 1, "<hr>")
+            # Align date paragraph
+            if date_block:
+                if 'class="' not in date_block:
+                    date_block = date_block.replace("<p", '<p class="ql-align-right"', 1)
+                elif "ql-align-right" not in date_block:
+                    date_block = date_block.replace('class="', 'class="ql-align-right ', 1)
 
-            # Ensure date paragraph is right-aligned
-            for i, b in enumerate(blocks):
-                if is_date(b):
-                    if 'class="' not in b:
-                        b = b.replace("<p", '<p class="ql-align-right"', 1)
-                    elif "ql-align-right" not in b:
-                        b = b.replace('class="', 'class="ql-align-right ', 1)
-                    blocks[i] = b
-                    break
+            # Rebuild ordered blocks
+            new_blocks = []
+            new_blocks.append(sender_block)
+            new_blocks.append("<hr>")
+            if recipient_block:
+                new_blocks.append(recipient_block)
+            if date_block:
+                new_blocks.append(date_block)
 
-            return "\n\n".join(blocks)
+            # Append remaining blocks in original order, skipping ones already placed
+            used = {sender_block, recipient_block, date_block}
+            for b in blocks[1:]:
+                if b in used:
+                    continue
+                new_blocks.append(b)
+
+            return "\n\n".join(new_blocks)
         except Exception as exc:
             logger.warning(f"Layout normalization skipped: {exc}")
             return html

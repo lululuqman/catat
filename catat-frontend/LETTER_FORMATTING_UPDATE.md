@@ -2,7 +2,7 @@
 
 ## What Was Fixed
 
-The letter editor now displays letters with proper paragraph formatting like a real official letter, with clear spacing between sections (sender info, date, recipient, salutation, subject, body, closing).
+The letter editor now displays letters with proper paragraph formatting like a real official letter, with clear spacing between sections (sender info, separator line, recipient info, date, salutation, subject, body, closing).
 
 ## 🎨 Changes Made
 
@@ -20,10 +20,9 @@ The letter editor now displays letters with proper paragraph formatting like a r
 
 # NEW: Proper HTML with paragraph tags
 <p>[Sender Name]<br>[Address]<br>[Contact]</p>
-
-<p>[Date: DD Month YYYY]</p>
-
+<hr>
 <p>[Recipient Name]<br>[Title]<br>[Organization]<br>[Address]</p>
+<p class="ql-align-right">[Date: DD Month YYYY]</p>
 ```
 
 **Key improvements:**
@@ -121,18 +120,13 @@ Ahmad bin Abdullah
 The formatted letter now has these distinct sections:
 
 1. **Sender Info** (one paragraph with line breaks)
-2. **Blank space**
-3. **Date** (one paragraph)
-4. **Blank space**
-5. **Recipient Info** (one paragraph with line breaks)
-6. **Blank space**
-7. **Salutation** (one paragraph)
-8. **Blank space**
-9. **Subject** (one paragraph, bold)
-10. **Blank space**
-11. **Body paragraphs** (each in separate paragraph)
-12. **Blank space**
-13. **Closing** (one paragraph with line breaks)
+2. **Separator line** (`<hr>`)
+3. **Recipient Info** (one paragraph with line breaks)
+4. **Date** (one paragraph, right-aligned)
+5. **Salutation** (one paragraph)
+6. **Subject** (one paragraph, bold)
+7. **Body paragraphs** (each in separate paragraph)
+8. **Closing** (one paragraph with line breaks)
 
 ## ✅ Testing Steps
 
