@@ -2,7 +2,7 @@
 
 # 🎤 Catat
 
-**Speak. We Write. Professionally.**
+**You speak. Let AI Catat-ing for you.**
 
 AI-powered Malaysian letter generator that converts voice into professional documents
 
@@ -10,11 +10,6 @@ AI-powered Malaysian letter generator that converts voice into professional docu
 [![Groq](https://img.shields.io/badge/Groq-Whisper%20%26%20Llama-green?style=for-the-badge)]()
 [![Claude](https://img.shields.io/badge/Claude-AI-blue?style=for-the-badge)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-
-[Live Demo](#) • [Features](#features) • [Tech Stack](#tech-stack) • [Installation](#installation)
-
-![Catat Demo](https://via.placeholder.com/800x400/ef4444/ffffff?text=Catat+Demo+Screenshot)
-<!-- Replace with actual screenshot after deployment -->
 
 </div>
 
@@ -75,7 +70,7 @@ Voice → Groq Whisper (STT) → Groq Llama 3.3 (Structure) → Claude (Generate
 
 ### Backend
 - **FastAPI** - High-performance Python API
-- **Python 3.11** - Modern async support
+- **Python 3.13** - Modern async support
 - **Uvicorn** - ASGI server
 
 ### AI Services
