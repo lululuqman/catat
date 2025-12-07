@@ -41,9 +41,9 @@ function LandingPage() {
             <span className="text-primary-700 font-semibold text-sm">🇲🇾 Made for Malaysia</span>
           </div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-gray-900 mb-6">
-            Speak. Generate.
+            You Speak.
             <span className="block bg-gradient-to-r from-primary-600 via-secondary-600 to-purple-600 bg-clip-text text-transparent">
-              Professional Letters.
+              Let AI Catat-ing for you.
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
