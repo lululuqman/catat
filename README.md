@@ -88,7 +88,6 @@ Voice → Groq Whisper (STT) → Groq Llama 3.3 (Structure) → Claude (Generate
 
 ---
 
----
 
 ## 🤖 AI Models Deep Dive
 
@@ -233,7 +232,7 @@ This project demonstrates:
 
 ## 📐 Architecture
 
-### Dual-AI Pipeline
+### Triple-AI Pipeline
 ```
 ┌──────────────┐
 │     USER     │ Records voice
