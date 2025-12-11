@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\Users\\ayamb\\Documents\\Personal Project\\catat\\catat-frontend\\src\\components\")",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

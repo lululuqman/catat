@@ -3,6 +3,7 @@ import { FileText, Plus, Search, Trash2, Download, Edit, RefreshCw } from 'lucid
 import { useNavigate } from 'react-router-dom'
 import { supabaseService } from '../services/supabaseService'
 import { pdfService } from '../services/pdfService'
+import { wordService } from '../services/wordService'
 import { getLetterTypeDisplay, getLanguageDisplay } from '../templates/letterTemplates'
 
 function LettersPage() {
@@ -89,13 +90,29 @@ function LettersPage() {
         letter_type: letter.letter_type,
         language: letter.language
       }
-      
+
       const doc = pdfService.generateLetterPDF(letter.content, pdfMetadata)
       const filename = `${letter.title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`
       pdfService.downloadPDF(doc, filename)
     } catch (error) {
       console.error('PDF export error:', error)
       alert('Failed to export PDF: ' + error.message)
+    }
+  }
+
+  const handleExportWord = async (letter) => {
+    try {
+      const wordMetadata = {
+        letter_type: letter.letter_type,
+        language: letter.language
+      }
+
+      const doc = await wordService.generateLetterDOCX(letter.content, wordMetadata)
+      const filename = `${letter.title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.docx`
+      await wordService.downloadDOCX(doc, filename)
+    } catch (error) {
+      console.error('Word export error:', error)
+      alert('Failed to export Word document: ' + error.message)
     }
   }
 
@@ -310,6 +327,17 @@ function LettersPage() {
                   >
                     <Download className="h-4 w-4" />
                     PDF
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleExportWord(letter)
+                    }}
+                    className="flex-1 text-sm text-gray-600 hover:text-blue-600 font-medium transition-colors flex items-center justify-center gap-1"
+                    title="Export as Word document"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Word
                   </button>
                   <button
                     onClick={(e) => {

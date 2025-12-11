@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Download, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, Download, Trash2, FileText } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import { pdfService } from '../services/pdfService'
+import { wordService } from '../services/wordService'
 import { supabaseService } from '../services/supabaseService'
 import { formatMalaysianLetter } from '../templates/letterTemplates'
 
@@ -154,14 +155,30 @@ function LetterEditorPage() {
         letter_type: metadata?.letter_type || 'letter',
         language: metadata?.language || 'en'
       }
-      
+
       const doc = pdfService.generateLetterPDF(content, pdfMetadata)
-      
+
       const filename = `${metadata?.letter_type || 'letter'}_${new Date().getTime()}.pdf`
       pdfService.downloadPDF(doc, filename)
-      
+
     } catch (error) {
       alert('Failed to export PDF: ' + error.message)
+    }
+  }
+
+  const handleExportWord = async () => {
+    try {
+      const wordMetadata = {
+        letter_type: metadata?.letter_type || 'letter',
+        language: metadata?.language || 'en'
+      }
+
+      const doc = await wordService.generateLetterDOCX(content, wordMetadata)
+      const filename = `${metadata?.letter_type || 'letter'}_${new Date().getTime()}.docx`
+      await wordService.downloadDOCX(doc, filename)
+    } catch (error) {
+      console.error('Word export error:', error)
+      alert('Failed to export Word document: ' + error.message)
     }
   }
 
@@ -206,6 +223,13 @@ function LetterEditorPage() {
               >
                 <Download className="h-4 w-4" />
                 Export PDF
+              </button>
+              <button
+                onClick={handleExportWord}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                Export Word
               </button>
               {id && id !== 'new' && (
                 <button
